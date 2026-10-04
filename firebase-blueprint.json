@@ -1,0 +1,133 @@
+{
+  "entities": {
+    "userProfile": {
+      "title": "UserProfile",
+      "description": "User profile with environmental stats and badges",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "format": "email", "maxLength": 256 },
+        "name": { "type": "string", "maxLength": 128 },
+        "city": { "type": "string", "maxLength": 100 },
+        "joinedDate": { "type": "string", "maxLength": 64 },
+        "role": { "type": "string", "enum": ["citizen", "admin"], "maxLength": 32 },
+        "stats": {
+          "type": "object",
+          "properties": {
+            "itemsIdentified": { "type": "number" },
+            "reportsSubmitted": { "type": "number" },
+            "sustainableActions": { "type": "number" },
+            "wasteDivertedKg": { "type": "number" },
+            "co2AvoidedKg": { "type": "number" }
+          }
+        },
+        "badges": {
+          "type": "array"
+        }
+      },
+      "required": ["uid", "email", "name", "city", "joinedDate"]
+    },
+    "reportIssue": {
+      "title": "ReportIssue",
+      "description": "Civic waste dumping grievance or issue report",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "reporterId": { "type": "string", "maxLength": 128 },
+        "reporterName": { "type": "string", "maxLength": 128 },
+        "reporterEmail": { "type": "string", "format": "email", "maxLength": 256 },
+        "reporterPhone": { "type": "string", "maxLength": 32 },
+        "issueType": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "location": {
+          "type": "object",
+          "properties": {
+            "city": { "type": "string", "maxLength": 100 },
+            "locality": { "type": "string", "maxLength": 200 },
+            "address": { "type": "string", "maxLength": 500 },
+            "landmark": { "type": "string", "maxLength": 200 },
+            "coordinates": {
+              "type": "object",
+              "properties": {
+                "latitude": { "type": "number" },
+                "longitude": { "type": "number" }
+              }
+            }
+          }
+        },
+        "imageUrl": { "type": "string", "maxLength": 2000 },
+        "status": {
+          "type": "string",
+          "enum": ["Submitted", "Under review", "Assigned", "Resolved"],
+          "maxLength": 64
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "maxLength": 32
+        },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 },
+        "assignedWard": { "type": "string", "maxLength": 200 },
+        "resolutionNotes": { "type": "string", "maxLength": 2000 }
+      },
+      "required": ["id", "reporterId", "issueType", "description", "status", "createdAt"]
+    },
+    "communityPost": {
+      "title": "CommunityPost",
+      "description": "Citizen post on the circular community wall",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "authorId": { "type": "string", "maxLength": 128 },
+        "authorName": { "type": "string", "maxLength": 128 },
+        "authorCity": { "type": "string", "maxLength": 100 },
+        "title": { "type": "string", "maxLength": 200 },
+        "content": { "type": "string", "maxLength": 3000 },
+        "category": { "type": "string", "maxLength": 100 },
+        "type": { "type": "string", "maxLength": 100 },
+        "likes": { "type": "number" },
+        "likedBy": { "type": "array" },
+        "status": {
+          "type": "string",
+          "enum": ["Pending review", "Approved", "Rejected"],
+          "maxLength": 64
+        },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "authorId", "authorName", "title", "content", "status", "createdAt"]
+    },
+    "wasteActivity": {
+      "title": "WasteActivity",
+      "description": "User logged waste diversion or segregation activity",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "action": { "type": "string", "maxLength": 200 },
+        "details": { "type": "string", "maxLength": 1000 },
+        "timestamp": { "type": "string", "maxLength": 64 },
+        "divertedKg": { "type": "number" }
+      },
+      "required": ["id", "userId", "action", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "userProfile",
+      "description": "User profile and impact statistics"
+    },
+    "/users/{userId}/activities/{activityId}": {
+      "schema": "wasteActivity",
+      "description": "Recent actions and segregation timeline logged by user"
+    },
+    "/reports/{reportId}": {
+      "schema": "reportIssue",
+      "description": "Citizen reports of waste dumping and grievances"
+    },
+    "/communityPosts/{postId}": {
+      "schema": "communityPost",
+      "description": "Community wall submissions and zero waste tips"
+    }
+  }
+}

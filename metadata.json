@@ -1,0 +1,6 @@
+{
+  "name": "PrithveX - Smart Waste Segregation & Disposal",
+  "description": "Intelligent Indian waste segregation, recycling directory, AI classification, and community sustainability platform.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
