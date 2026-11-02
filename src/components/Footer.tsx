@@ -1,5 +1,5 @@
 import React from 'react';
-import { Recycle, Heart, ShieldCheck, ExternalLink } from 'lucide-react';
+import { ShieldCheck, Coins, Store, Compass, Sparkles } from 'lucide-react';
 
 interface FooterProps {
   onNavigate: (tab: string) => void;
@@ -7,135 +7,156 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   return (
-    <footer className="bg-slate-950 text-slate-300 border-t border-slate-800 pt-12 pb-8 mt-20">
+    <footer className="bg-[#111C2E] text-[#E3E8EF] border-t border-[#253247] pt-16 pb-12 mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pb-10 border-b border-slate-800">
-          {/* Col 1: Brand & Mission */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-700 flex items-center justify-center text-white">
-                <Recycle className="w-5 h-5" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-[#253247] text-xs">
+          {/* Brand & Mandate */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-white text-[#111C2E] flex items-center justify-center font-black text-xs shadow-sm">
+                P
               </div>
-              <span className="text-xl font-black tracking-tight text-white">
-                Prithve<span className="text-emerald-400">X</span>
+              <span className="text-base font-extrabold tracking-tight text-white">
+                Prithve<span className="text-[#19B5A5]">X</span>
               </span>
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              India produces over 62 million tonnes of municipal solid waste annually, with less than 25% currently segregated and processed at source. PrithveX empowers citizens with instant segregation intelligence, verified local recycler directories, and civic reporting.
+            <p className="text-white font-bold text-xs">
+              Better Waste Decisions. Sustainable Action.
             </p>
-            <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium">
-              <ShieldCheck className="w-4 h-4" />
-              <span>Aligned with Swachh Bharat & SWM 2016</span>
+            <p className="text-[#718096] text-xs leading-relaxed max-w-md">
+              PrithveX connects the complete Indian circular economy journey: Identify → Classify → Segregate → Reuse/Repair/Donate → Find Verified Recyclers & Buyers → P2P Waste Marketplace → Real Impact Tracking.
+            </p>
+            <div className="pt-2 flex items-center gap-2 text-[11px] text-[#E3E8EF] font-medium">
+              <ShieldCheck className="w-4 h-4 text-[#19B5A5] shrink-0" />
+              <span>MoEFCC · CPCB SWM 2016 · PWM 2021 Statutory Architecture</span>
             </div>
           </div>
 
-          {/* Col 2: Platform Navigation */}
+          {/* Navigation Matrix */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-100 mb-3">
-              Explore PrithveX
-            </h4>
-            <ul className="space-y-2 text-xs">
+            <p className="font-bold text-white text-xs uppercase tracking-wider mb-3">
+              Circular Directories
+            </p>
+            <ul className="space-y-2.5">
               <li>
-                <button onClick={() => onNavigate('identify')} className="text-slate-400 hover:text-emerald-400 transition-colors">
-                  AI Waste Identifier (Vision)
+                <button onClick={() => onNavigate('map')} className="hover:text-white transition-colors text-left flex items-center gap-1.5 text-[#19B5A5] font-bold">
+                  <Compass className="w-3.5 h-3.5" />
+                  <span>Circularity Map</span>
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('search')} className="text-slate-400 hover:text-emerald-400 transition-colors">
-                  What Should I Do? (Database)
+                <button onClick={() => onNavigate('identify')} className="hover:text-white transition-colors text-left flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-[#7667E8]" />
+                  <span>AI Waste Identifier</span>
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('recyclers')} className="text-slate-400 hover:text-emerald-400 transition-colors">
-                  Find Verified Recyclers
+                <button onClick={() => onNavigate('search')} className="hover:text-white transition-colors text-left">
+                  Household Waste Database
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('learn')} className="text-slate-400 hover:text-emerald-400 transition-colors">
-                  Composting & Segregation Guides
+                <button onClick={() => onNavigate('recyclers')} className="hover:text-white transition-colors text-left">
+                  Verified Recyclers & NGOs
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('community')} className="text-slate-400 hover:text-emerald-400 transition-colors">
-                  Community Action Wall
+                <button onClick={() => onNavigate('buyers')} className="hover:text-white transition-colors text-left flex items-center gap-1.5 text-[#E8A84E] font-medium">
+                  <Coins className="w-3 h-3" />
+                  <span>Waste Buyers & Aggregators</span>
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('report')} className="text-slate-400 hover:text-rose-400 transition-colors">
-                  Report Waste Dumping Issue
+                <button onClick={() => onNavigate('marketplace')} className="hover:text-white transition-colors text-left flex items-center gap-1.5 text-[#19B5A5]">
+                  <Store className="w-3 h-3" />
+                  <span>P2P Waste Marketplace</span>
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('dashboard')} className="text-slate-400 hover:text-emerald-400 transition-colors">
-                  Citizen Impact Dashboard
+                <button onClick={() => onNavigate('report')} className="hover:text-white transition-colors text-left text-rose-300">
+                  Civic Grievance Reporting
                 </button>
               </li>
             </ul>
           </div>
 
-          {/* Col 3: Practical Indian Waste Streams */}
+          {/* Statutory Streams */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-100 mb-3">
+            <p className="font-bold text-white text-xs uppercase tracking-wider mb-3">
               Segregation Streams
-            </h4>
-            <ul className="space-y-2 text-xs text-slate-400">
+            </p>
+            <ul className="space-y-2.5 text-[#718096]">
               <li className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span>Wet / Organic (Green Bin - Compost)</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A]" />
+                <span className="text-[#E3E8EF]">Wet / Organic (Green Bin)</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                <span>Dry Recyclables (Blue Bin - Kabadiwala)</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#0284C7]" />
+                <span className="text-[#E3E8EF]">Dry Recyclable (Blue Bin)</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                <span>Domestic Hazardous & Batteries</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#E11D48]" />
+                <span className="text-[#E3E8EF]">Domestic Hazardous (Red Bin)</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-slate-400"></span>
-                <span>E-Waste & Electronics (CPCB Authorized)</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#E8A84E]" />
+                <span className="text-[#E3E8EF]">Used Cooking Oil (RUCO)</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-rose-400"></span>
-                <span>Sanitary Waste (Red Dot Paper Wrap)</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                <span>Used Cooking Oil (FSSAI RUCO)</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#7667E8]" />
+                <span className="text-[#E3E8EF]">E-Waste & Batteries (TSDF)</span>
               </li>
             </ul>
           </div>
 
-          {/* Col 4: Statutory & Hackathon Notes */}
+          {/* Legal & Standards */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-100 mb-3">
-              Important Disclaimers
-            </h4>
-            <p className="text-[11px] text-slate-400 leading-relaxed mb-3">
-              AI classifications are advisory. Please observe municipal bin collection protocols in your urban local body (BBMP, BMC, MCD, PMC, etc.).
+            <p className="font-bold text-white text-xs uppercase tracking-wider mb-3">
+              Governance & Action
             </p>
-            <div className="bg-slate-900 border border-slate-800 rounded-lg p-3 text-[11px] text-slate-400 space-y-1">
-              <p className="font-semibold text-slate-300">Hackathon Prototype</p>
-              <p>Designed for scalable municipal and consumer deployment using modern React, Express, and multimodal Gemini 3.8 Flash.</p>
-            </div>
+            <ul className="space-y-2.5">
+              <li>
+                <button onClick={() => onNavigate('learn')} className="hover:text-white transition-colors text-left">
+                  Zero-Waste Living Guides
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onNavigate('community')} className="hover:text-white transition-colors text-left">
+                  Citizen Action Wall
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onNavigate('dashboard')} className="hover:text-white transition-colors text-left">
+                  Personal Impact Balance Sheet
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onNavigate('about')} className="hover:text-white transition-colors text-left">
+                  Statutory Methodology
+                </button>
+              </li>
+              <li>
+                <span className="text-[#718096] block leading-relaxed text-[11px] pt-1">
+                  Classifications serve as advisory guidance under Municipal Corporation Bye-laws.
+                </span>
+              </li>
+            </ul>
           </div>
         </div>
 
-        {/* Bottom copyright row */}
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-3">
-          <p>© {new Date().getFullYear()} PrithveX. Built for sustainable, circular communities across India.</p>
+        {/* Bottom Metadata */}
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-[#718096] gap-3">
+          <p>© {new Date().getFullYear()} PrithveX. Better Waste Decisions. Sustainable Action.</p>
           <div className="flex items-center gap-4">
             <button onClick={() => onNavigate('about')} className="hover:text-white transition-colors">
-              About Project
+              Documentation
             </button>
-            <span>•</span>
+            <span aria-hidden="true" className="text-[#253247]">·</span>
             <button onClick={() => onNavigate('learn')} className="hover:text-white transition-colors">
-              Knowledge Base
+              Compliance Rules
             </button>
-            <span>•</span>
-            <span className="flex items-center gap-1 text-slate-400">
-              Made with <Heart className="w-3 h-3 text-rose-500 fill-rose-500" /> for Planet Earth
-            </span>
+            <span aria-hidden="true" className="text-[#253247]">·</span>
+            <span className="text-[#E3E8EF]">Swachh Bharat Mission Aligned</span>
           </div>
         </div>
       </div>

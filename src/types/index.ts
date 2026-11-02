@@ -26,6 +26,12 @@ export type DisposalPathway =
 
 export type BinColor = 'green' | 'blue' | 'red' | 'black' | 'yellow' | 'special';
 
+export type VerificationStatus =
+  | 'Verified'
+  | 'Verification Pending'
+  | 'Community Submitted'
+  | 'Information Needs Updating';
+
 export interface WasteItem {
   id: string;
   name: string;
@@ -79,18 +85,111 @@ export interface Recycler {
   name: string;
   city: string;
   state: string;
+  district?: string;
   address: string;
   acceptedCategories: WasteCategory[];
+  specificMaterials?: string[];
   collectionMethods: ('Doorstep pickup' | 'Drop-off center' | 'Bulk pickup')[];
   contactPhone: string;
+  whatsappNumber?: string;
   email?: string;
   website?: string;
+  googleMapsUrl?: string;
   isVerified: boolean;
+  verificationStatus: VerificationStatus;
   lastVerifiedDate: string;
+  sourceOfInformation?: string;
   operatingHours: string;
   rating: number;
   pricingNote?: string;
+  minimumQuantity?: string;
+  pickupAvailable?: boolean;
+  isDropoffAvailable?: boolean;
   notes?: string;
+}
+
+export interface WasteBuyer {
+  id: string;
+  name: string;
+  businessType: 'Authorized Recycler' | 'Scrap Merchant / Aggregator' | 'EPR Fulfillment Agency' | 'Industrial Processor' | 'Social Enterprise';
+  description: string;
+  state: string;
+  city: string;
+  district?: string;
+  address: string;
+  materialCategories: WasteCategory[];
+  acceptedMaterials: string[];
+  minimumQuantity: string;
+  maximumQuantity?: string;
+  pricingIndicative: string;
+  unit: 'kg' | 'tonne' | 'piece' | 'bundle';
+  priceUpdateDate?: string;
+  pickupAvailable: boolean;
+  deliveryAccepted: boolean;
+  contactPhone: string;
+  whatsappNumber?: string;
+  email?: string;
+  website?: string;
+  operatingHours: string;
+  isVerified: boolean;
+  verificationStatus: VerificationStatus;
+  sourceOfInformation: string;
+  lastVerifiedDate: string;
+  rating: number;
+  notes?: string;
+}
+
+export interface MarketplaceListing {
+  id: string;
+  type: 'sell' | 'buy'; // sell = I have waste; buy = Looking to buy
+  title: string;
+  category: WasteCategory;
+  materialType: string;
+  quantity: number;
+  unit: 'kg' | 'tonnes' | 'pieces' | 'bundles' | 'bags';
+  condition: 'Clean & Baled' | 'Segregated & Rinsed' | 'Mixed Scrap Lot' | 'Grade A Recyclable' | 'Refurbishable';
+  description: string;
+  expectedPrice?: string; // e.g. "₹14/kg" or "Free collection" or "Negotiable"
+  city: string;
+  locality: string;
+  state: string;
+  pickupOrDelivery: 'Pickup only' | 'Delivery available' | 'Flexible / Negotiable';
+  contactName: string;
+  contactPhone: string;
+  contactEmail?: string;
+  whatsappPreferred?: boolean;
+  status: 'available' | 'in_negotiation' | 'completed' | 'cancelled';
+  createdAt: string;
+  userId: string;
+  enquiriesCount: number;
+  imageUrl?: string;
+}
+
+export interface MarketplaceEnquiry {
+  id: string;
+  listingId: string;
+  senderName: string;
+  senderContact: string;
+  senderEmail?: string;
+  offeredPrice?: string;
+  message: string;
+  createdAt: string;
+  status: 'pending' | 'accepted' | 'declined';
+}
+
+export interface DirectoryCorrection {
+  id: string;
+  targetType: 'recycler' | 'buyer' | 'waste_item';
+  targetId?: string;
+  targetName: string;
+  suggestedName?: string;
+  city: string;
+  state: string;
+  suggestedCategory?: string;
+  notes: string;
+  reporterContact?: string;
+  createdAt: string;
+  status: 'pending' | 'verified' | 'rejected';
 }
 
 export interface ReportIssue {
@@ -156,8 +255,17 @@ export interface UserProfile {
   avatarSeed?: string;
   joinedDate: string;
   isLoggedIn: boolean;
+  savedRecyclerIds: string[];
+  savedBuyerIds: string[];
+  savedListingIds: string[];
+  bookmarkedGuideIds: string[];
+  savedLocationIds?: string[];
   stats: {
     itemsIdentified: number;
+    itemsSegregated: number;
+    itemsReused: number;
+    itemsDonated: number;
+    itemsSold: number;
     reportsSubmitted: number;
     sustainableActions: number;
     wasteDivertedKg: number;
@@ -177,3 +285,55 @@ export interface UserProfile {
     details: string;
   }[];
 }
+
+export type MapMarkerCategory =
+  | 'recycling_centre'
+  | 'scrap_dealer'
+  | 'waste_buyer'
+  | 'ewaste_centre'
+  | 'plastic_recycler'
+  | 'paper_recycler'
+  | 'metal_recycler'
+  | 'composting_centre'
+  | 'donation_centre'
+  | 'collection_point'
+  | 'waste_hotspot';
+
+export interface CircularityLocation {
+  id: string;
+  name: string;
+  category: MapMarkerCategory;
+  categoryLabel: string;
+  sourceType: 'recycler' | 'buyer' | 'hotspot' | 'collection_point';
+  originalId: string;
+  city: string;
+  state: string;
+  locality?: string;
+  address: string;
+  lat: number;
+  lng: number;
+  acceptedCategories: WasteCategory[];
+  specificMaterials: string[];
+  collectionMethods?: ('Doorstep pickup' | 'Drop-off center' | 'Bulk pickup')[];
+  contactPhone?: string;
+  whatsappNumber?: string;
+  email?: string;
+  website?: string;
+  googleMapsUrl: string;
+  operatingHours?: string;
+  rating?: number;
+  isVerified: boolean;
+  verificationStatus: VerificationStatus;
+  minimumQuantity?: string;
+  pricingNote?: string;
+  notes?: string;
+  distanceKm?: number;
+  hotspotData?: {
+    issueType: string;
+    status: string;
+    referenceNo: string;
+    submittedAt: string;
+    description: string;
+  };
+}
+

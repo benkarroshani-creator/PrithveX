@@ -2,16 +2,15 @@ import React, { useState } from 'react';
 import { 
   AlertTriangle, 
   MapPin, 
-  Camera, 
   Upload, 
   CheckCircle2, 
   Clock, 
   ShieldCheck, 
   Search, 
-  ArrowRight, 
   Send, 
   Navigation, 
-  FileText 
+  FileText,
+  Trash2
 } from 'lucide-react';
 import { ReportIssue, UserProfile } from '../types';
 import { submitReport } from '../services/storageService';
@@ -61,10 +60,10 @@ export const ReportIssuePage: React.FC<ReportIssuePageProps> = ({
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setLocality(`GPS: ${pos.coords.latitude.toFixed(4)}°N, ${pos.coords.longitude.toFixed(4)}°E`);
-        onShowToast('GPS location attached to report!', 'success');
+        onShowToast('GPS coordinates attached to complaint.', 'success');
       },
       (err) => {
-        onShowToast('Could not access GPS. Please type your ward or locality manually.', 'info');
+        onShowToast('Could not access GPS. Please type your locality or ward manually.', 'info');
       }
     );
   };
@@ -72,7 +71,7 @@ export const ReportIssuePage: React.FC<ReportIssuePageProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!description.trim() || !locality.trim()) {
-      onShowToast('Please provide a description and location.', 'info');
+      onShowToast('Please provide a description and locality address.', 'info');
       return;
     }
 
@@ -81,7 +80,6 @@ export const ReportIssuePage: React.FC<ReportIssuePageProps> = ({
     try {
       let finalImageUrl = imagePreview || undefined;
 
-      // Upload evidence image to Firebase Cloud Storage
       if (imageFile) {
         onShowToast('Uploading evidence photo to Firebase Cloud Storage...', 'info');
         finalImageUrl = await uploadImageToStorage(imageFile, 'reports');
@@ -96,15 +94,14 @@ export const ReportIssuePage: React.FC<ReportIssuePageProps> = ({
           pincode: pincode.trim() || undefined,
         },
         imageUrl: finalImageUrl,
-        reporterName: reporterName.trim() || currentUser.name || 'Anonymous Citizen',
+        reporterName: reporterName.trim() || currentUser.name || 'Citizen',
         reporterContact: reporterContact.trim() || currentUser.email || undefined,
       });
 
       setLastSubmittedId(newReport.id);
       onRefreshReports();
-      onShowToast(`Report lodged in Firestore! Ticket ID: #${newReport.id}`, 'success');
+      onShowToast(`Report submitted to Firestore. Ticket ID: #${newReport.id}`, 'success');
 
-      // Reset form
       setDescription('');
       setLocality('');
       setPincode('');
@@ -123,172 +120,143 @@ export const ReportIssuePage: React.FC<ReportIssuePageProps> = ({
       )
     : null;
 
-  const getStatusBadge = (status: ReportIssue['status']) => {
+  const getStatusColor = (status: ReportIssue['status']) => {
     switch (status) {
       case 'Submitted':
-        return {
-          bg: 'bg-blue-100 text-blue-800 border-blue-200',
-          dot: 'bg-blue-500',
-          label: 'Submitted (Awaiting Review)',
-        };
+        return 'text-blue-700 bg-blue-50 border-blue-200';
       case 'Under review':
-        return {
-          bg: 'bg-amber-100 text-amber-800 border-amber-200',
-          dot: 'bg-amber-500',
-          label: 'Under Ward Review',
-        };
+        return 'text-amber-700 bg-amber-50 border-amber-200';
       case 'Assigned':
-        return {
-          bg: 'bg-purple-100 text-purple-800 border-purple-200',
-          dot: 'bg-purple-500',
-          label: 'Assigned to Sanitation Vehicle',
-        };
+        return 'text-purple-700 bg-purple-50 border-purple-200';
       case 'Resolved':
-        return {
-          bg: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-          dot: 'bg-emerald-500',
-          label: 'Cleaned & Resolved',
-        };
+        return 'text-emerald-700 bg-emerald-50 border-emerald-200';
     }
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
-      {/* Header */}
-      <div className="max-w-2xl">
-        <span className="text-xs font-bold uppercase tracking-wider text-rose-600">
-          Civic Grievance & Ward Action
-        </span>
-        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 mt-1">
-          Report a Local Waste Issue
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-600 mt-1">
-          Report illegal black-spot garbage dumping, overflowing community bins, or toxic plastic pollution directly to the municipal oversight dashboard.
-        </p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+      {/* Page Header */}
+      <div className="border-b border-slate-200 pb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium mb-1">
+            <span>Civic Sanitation Accountability</span>
+            <span aria-hidden="true" className="text-slate-300">·</span>
+            <span>Municipal Ward Grievance Redressal</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+            Report Waste Grievance or Dumping Black-Spot
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl">
+            Lodge geo-tagged civic complaints for illegal garbage burning, overflowing community bins, or open dumping. Track municipal officer review and sanitation resolution.
+          </p>
+        </div>
+
+        {/* Quick Ticket Lookup */}
+        <div className="w-full sm:w-72">
+          <label className="block text-[11px] font-medium text-slate-600 mb-1">
+            Track Existing Grievance by Ticket ID
+          </label>
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+            <input
+              type="text"
+              value={searchReportId}
+              onChange={(e) => setSearchReportId(e.target.value)}
+              placeholder="e.g. PVX-2026-001"
+              className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-slate-900"
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Success Notification if just submitted */}
-      {lastSubmittedId && (
-        <div className="p-5 bg-emerald-50 border-2 border-emerald-300 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in duration-200">
-          <div className="flex items-center gap-3">
-            <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" />
+      {/* Searched Ticket Spotlight */}
+      {searchedReport && (
+        <div className="bg-white rounded-xl border border-slate-300 p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
-              <h4 className="font-bold text-emerald-950 text-sm">
-                Grievance Lodged Successfully!
-              </h4>
-              <p className="text-xs text-emerald-800 mt-0.5">
-                Tracking Reference ID: <strong className="font-mono bg-white px-2 py-0.5 rounded border border-emerald-200">{lastSubmittedId}</strong>
+              <div className="flex items-center gap-2 text-xs font-mono text-slate-500">
+                <span>Ticket #{searchedReport.id}</span>
+                <span aria-hidden="true">·</span>
+                <span>Submitted {searchedReport.submittedAt}</span>
+              </div>
+              <h3 className="font-bold text-slate-900 text-base mt-0.5">{searchedReport.issueType}</h3>
+            </div>
+            <span className={`text-xs px-2.5 py-1 rounded border font-medium ${getStatusColor(searchedReport.status)}`}>
+              {searchedReport.status}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div>
+              <p className="text-slate-500 font-medium">Location</p>
+              <p className="text-slate-800 font-semibold">{searchedReport.location.locality}, {searchedReport.location.city}</p>
+              <p className="text-slate-600 mt-2">{searchedReport.description}</p>
+            </div>
+            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+              <p className="font-semibold text-slate-900">Municipal Action Status</p>
+              <p className="text-slate-700">Assigned Ward: <strong>{searchedReport.assignedWard || 'Zonal Sanitation Unit'}</strong></p>
+              <p className="text-slate-600 text-[11px]">Notes: {searchedReport.resolutionNotes || 'Queued for ground inspection by ward health inspector.'}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Submission Success Confirmation */}
+      {lastSubmittedId && (
+        <div className="p-4 bg-emerald-50/80 border border-emerald-200 rounded-xl flex items-start justify-between gap-3 text-xs text-emerald-900">
+          <div className="flex items-start gap-2.5">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-bold">Grievance Ticket Lodged: #{lastSubmittedId}</h4>
+              <p className="text-emerald-800 mt-0.5">
+                Your report has been written to Firebase Firestore. Use ticket #{lastSubmittedId} to check status updates in the tracker above.
               </p>
             </div>
           </div>
           <button
-            onClick={() => setSearchReportId(lastSubmittedId)}
-            className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-semibold"
+            onClick={() => setLastSubmittedId(null)}
+            className="text-xs text-emerald-700 underline font-medium"
           >
-            Track Status Below
+            Dismiss
           </button>
         </div>
       )}
 
-      {/* Two Column Layout: Form & Status Tracker */}
+      {/* Main Form & Active Reports Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Form (7 cols) */}
-        <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-          <div className="border-b border-slate-100 pb-3">
-            <h2 className="font-bold text-slate-900 text-base flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-rose-600" />
-              <span>Waste Grievance Form</span>
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Accurate descriptions and photos speed up municipal response times.
-            </p>
+        {/* Left Column: Complaint Form (5 cols) */}
+        <div className="lg:col-span-5 bg-white rounded-xl p-6 border border-slate-200 shadow-2xs space-y-5">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">Lodge New Civic Complaint</h2>
+            <p className="text-xs text-slate-500 mt-0.5">All reports are routed to zonal municipal teams</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             {/* Issue Type */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Type of Waste Issue *
-              </label>
+              <label className="block font-medium text-slate-700 mb-1">Type of Waste Violation</label>
               <select
                 value={issueType}
                 onChange={(e) => setIssueType(e.target.value as any)}
-                className="w-full text-xs px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-emerald-600"
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white text-slate-900 focus:outline-slate-900"
               >
-                <option value="Garbage dumping">Illegal Garbage Dumping / Black Spot</option>
-                <option value="Overflowing bin">Overflowing Public Dustbin / Vat</option>
-                <option value="Uncollected waste">Uncollected Doorstep Waste</option>
-                <option value="Mixed waste">Mixed Non-Segregated Collection</option>
-                <option value="Plastic pollution">Plastic Waste in Drain / Waterbody</option>
-                <option value="Hazardous discharge">Chemical / Paint / Medical Dumping</option>
-                <option value="Other">Other Environmental Issue</option>
+                <option value="Garbage dumping">Illegal Roadside Garbage Dumping</option>
+                <option value="Overflowing bin">Overflowing Municipal Community Bin</option>
+                <option value="Hazardous waste">Open Chemical / Domestic Hazardous Waste</option>
+                <option value="E-waste dumping">Discarded E-Waste / Battery Leaks</option>
+                <option value="Plastic burning">Open Waste / Plastic Burning</option>
+                <option value="Other">Other Sanitation Violation</option>
               </select>
             </div>
 
-            {/* Description */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Detailed Description *
-              </label>
-              <textarea
-                required
-                rows={3}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe the issue, landmarks, severity (e.g. blocking walkway, foul smell, attracting stray animals, fire risk)..."
-                className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:outline-emerald-600"
-              ></textarea>
-            </div>
-
-            {/* Photo Upload */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Attach Photo Evidence (Recommended)
-              </label>
-              <div className="flex items-center gap-3">
-                <label className="cursor-pointer px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors">
-                  <Camera className="w-4 h-4 text-emerald-600" />
-                  <span>Choose Photo</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        handleImageUpload(e.target.files[0]);
-                      }
-                    }}
-                  />
-                </label>
-                {imagePreview && (
-                  <div className="relative">
-                    <img
-                      src={imagePreview}
-                      alt="Uploaded waste preview"
-                      className="w-12 h-12 rounded-lg object-cover border border-slate-300"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setImagePreview(null)}
-                      className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-rose-600 text-white rounded-full text-[10px] flex items-center justify-center font-bold"
-                    >
-                      ×
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
             {/* City & Locality */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  City *
-                </label>
+                <label className="block font-medium text-slate-700 mb-1">City Hub</label>
                 <select
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="w-full text-xs px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white focus:outline-emerald-600"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white text-slate-900 focus:outline-slate-900"
                 >
                   <option value="Bengaluru">Bengaluru</option>
                   <option value="Mumbai">Mumbai</option>
@@ -302,69 +270,111 @@ export const ReportIssuePage: React.FC<ReportIssuePageProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Pincode (Optional)
-                </label>
+                <label className="block font-medium text-slate-700 mb-1">Pincode (Optional)</label>
                 <input
                   type="text"
-                  maxLength={6}
                   value={pincode}
                   onChange={(e) => setPincode(e.target.value)}
-                  placeholder="e.g. 560038"
-                  className="w-full text-xs px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-emerald-600"
+                  placeholder="e.g. 560001"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-slate-900"
                 />
               </div>
             </div>
 
+            {/* Locality Address + GPS */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-slate-700">
-                  Street Address / Locality / Ward *
-                </label>
+                <label className="font-medium text-slate-700">Locality Address or Landmark *</label>
                 <button
                   type="button"
                   onClick={handleUseGps}
-                  className="text-[11px] text-emerald-700 hover:underline flex items-center gap-1 font-semibold"
+                  className="text-[11px] text-slate-700 hover:text-slate-950 font-medium inline-flex items-center gap-1"
                 >
-                  <Navigation className="w-3 h-3" />
-                  <span>Use Device GPS</span>
+                  <Navigation className="w-3 h-3 text-slate-500" />
+                  <span>Attach GPS</span>
                 </button>
               </div>
               <input
                 type="text"
-                required
                 value={locality}
                 onChange={(e) => setLocality(e.target.value)}
-                placeholder="e.g. 12th Main Road, near junction water tank, Ward 89"
-                className="w-full text-xs px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-emerald-600"
+                placeholder="e.g. 12th Main Road, Indiranagar, near water tank"
+                required
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-slate-900"
               />
             </div>
 
+            {/* Description */}
+            <div>
+              <label className="block font-medium text-slate-700 mb-1">Details of Violation *</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                placeholder="Describe size of dump, foul odor, fire risk, or days since bin overflowed..."
+                required
+                className="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-slate-900 resize-none"
+              />
+            </div>
+
+            {/* Photo Evidence Upload */}
+            <div>
+              <label className="block font-medium text-slate-700 mb-1">Photo Evidence (Firebase Cloud Storage)</label>
+              <div className="border border-dashed border-slate-300 rounded-lg p-3 text-center bg-slate-50/50">
+                {imagePreview ? (
+                  <div className="relative inline-block">
+                    <img src={imagePreview} alt="Evidence preview" className="max-h-32 object-contain rounded" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImagePreview(null);
+                        setImageFile(null);
+                      }}
+                      className="absolute -top-2 -right-2 bg-rose-600 text-white rounded-full p-1"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="cursor-pointer block">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          handleImageUpload(e.target.files[0]);
+                        }
+                      }}
+                    />
+                    <Upload className="w-4 h-4 mx-auto text-slate-400 mb-1" />
+                    <span className="text-[11px] text-slate-600 font-medium">Click to upload photo evidence</span>
+                    <span className="text-[10px] text-slate-400 block">Uploaded securely to Firebase Storage</span>
+                  </label>
+                )}
+              </div>
+            </div>
+
             {/* Reporter Contact Info */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div className="grid grid-cols-2 gap-2 pt-1">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Your Name (Optional)
-                </label>
+                <label className="block font-medium text-slate-700 mb-1">Reporter Name</label>
                 <input
                   type="text"
                   value={reporterName}
                   onChange={(e) => setReporterName(e.target.value)}
-                  placeholder="Keep blank for anonymous"
-                  className="w-full text-xs px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-emerald-600"
+                  placeholder="Citizen name"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-slate-900"
                 />
               </div>
-
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Contact Phone (Optional)
-                </label>
+                <label className="block font-medium text-slate-700 mb-1">Contact Phone or Email</label>
                 <input
-                  type="tel"
+                  type="text"
                   value={reporterContact}
                   onChange={(e) => setReporterContact(e.target.value)}
-                  placeholder="For SMS status updates"
-                  className="w-full text-xs px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-emerald-600"
+                  placeholder="Phone / email"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-slate-900"
                 />
               </div>
             </div>
@@ -372,111 +382,62 @@ export const ReportIssuePage: React.FC<ReportIssuePageProps> = ({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 px-4 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-md shadow-rose-600/20 flex items-center justify-center gap-2 transition-all mt-4"
+              className="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white font-semibold rounded-lg text-xs flex items-center justify-center gap-2 transition-colors mt-2"
             >
-              <Send className="w-4 h-4" />
-              <span>{isSubmitting ? 'Registering Grievance...' : 'Submit Grievance to Municipal Portal'}</span>
+              <Send className="w-3.5 h-3.5" />
+              <span>{isSubmitting ? 'Uploading & Lodging Ticket...' : 'Submit Grievance Ticket'}</span>
             </button>
           </form>
         </div>
 
-        {/* Right Column: Status Tracker & Recent Reports (5 cols) */}
-        <div className="lg:col-span-5 space-y-6">
-          {/* Tracker Search Box */}
-          <div className="bg-slate-900 text-white rounded-3xl p-6 shadow-md space-y-3">
-            <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2">
-              <Search className="w-4 h-4 text-emerald-400" />
-              <span>Track Existing Ticket Status</span>
-            </h3>
-            <p className="text-xs text-slate-400">
-              Enter your unique tracking reference ID (e.g. PVX-2026-8812) to inspect real-time municipal inspection progress.
-            </p>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={searchReportId}
-                onChange={(e) => setSearchReportId(e.target.value)}
-                placeholder="Enter Ticket ID (PVX-2026-...)"
-                className="flex-1 text-xs px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-emerald-500 font-mono"
-              />
-              {searchReportId && (
-                <button
-                  onClick={() => setSearchReportId('')}
-                  className="px-2 text-slate-400 hover:text-white"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-
-            {/* Found Report Inspector */}
-            {searchedReport && (
-              <div className="p-4 bg-slate-800 rounded-2xl border border-slate-700 text-xs space-y-2 animate-in fade-in duration-150">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-emerald-400 font-bold">
-                    #{searchedReport.id}
-                  </span>
-                  {(() => {
-                    const st = getStatusBadge(searchedReport.status);
-                    return (
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.bg}`}>
-                        {st.label}
-                      </span>
-                    );
-                  })()}
-                </div>
-                <p className="font-semibold text-slate-200">{searchedReport.issueType}</p>
-                <p className="text-slate-400 text-[11px]">{searchedReport.location.locality}, {searchedReport.location.city}</p>
-                {searchedReport.assignedWard && (
-                  <p className="text-[11px] text-purple-300">
-                    <strong>Ward:</strong> {searchedReport.assignedWard}
-                  </p>
-                )}
-                {searchedReport.resolutionNotes && (
-                  <p className="text-[11px] text-emerald-300 bg-emerald-950/60 p-2 rounded-lg border border-emerald-800/60">
-                    <strong>Notes:</strong> {searchedReport.resolutionNotes}
-                  </p>
-                )}
-              </div>
-            )}
+        {/* Right Column: Public Ticket Feed & Transparency (7 cols) */}
+        <div className="lg:col-span-7 space-y-4">
+          <div className="flex items-center justify-between pb-1">
+            <h2 className="text-sm font-semibold text-slate-900">Recent Grievances & Municipal Ward Redressal</h2>
+            <span className="text-xs text-slate-500 font-mono">{reports.length} total logged</span>
           </div>
 
-          {/* Recent Grievances Feed */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
-            <h3 className="font-bold text-slate-900 text-sm flex items-center justify-between">
-              <span>Recent Civic Reports</span>
-              <span className="text-xs font-semibold text-slate-500 font-mono">
-                {reports.length} Logged
-              </span>
-            </h3>
-
-            <div className="space-y-3">
-              {reports.slice(0, 4).map((r) => {
-                const st = getStatusBadge(r.status);
-                return (
-                  <div
-                    key={r.id}
-                    className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-xs space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono font-bold text-slate-700 text-[11px]">
-                        #{r.id}
-                      </span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.bg}`}>
-                        {r.status}
-                      </span>
+          <div className="space-y-3">
+            {reports.map((report) => (
+              <article key={report.id} className="bg-white rounded-xl border border-slate-200 p-5 space-y-3 hover:border-slate-300 transition-colors">
+                <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
+                  <div>
+                    <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
+                      <span>Ticket #{report.id}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>{report.submittedAt}</span>
                     </div>
-
-                    <h4 className="font-semibold text-slate-800">{r.issueType}</h4>
-                    <p className="text-[11px] text-slate-500 line-clamp-1">{r.description}</p>
-                    <p className="text-[10px] text-slate-400 flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-slate-400" />
-                      <span>{r.location.locality}, {r.location.city}</span>
-                    </p>
+                    <h3 className="font-semibold text-slate-900 text-sm mt-0.5">{report.issueType}</h3>
+                    <p className="text-xs text-slate-500">{report.location.locality}, {report.location.city}</p>
                   </div>
-                );
-              })}
-            </div>
+
+                  <span className={`text-[11px] px-2.5 py-0.5 rounded border font-medium ${getStatusColor(report.status)}`}>
+                    {report.status}
+                  </span>
+                </div>
+
+                <p className="text-xs text-slate-600 leading-relaxed">{report.description}</p>
+
+                {report.imageUrl && (
+                  <div className="pt-1">
+                    <img
+                      src={report.imageUrl}
+                      alt="Violation evidence"
+                      className="h-28 rounded-lg object-cover border border-slate-200"
+                    />
+                  </div>
+                )}
+
+                {/* Ward Status Box */}
+                <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200/80 text-[11px] text-slate-600 flex items-start gap-2">
+                  <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-medium text-slate-900">Ward Action: </span>
+                    <span>{report.assignedWard ? `${report.assignedWard} — ` : ''}{report.resolutionNotes || 'Pending assignment to sanitation inspection crew.'}</span>
+                  </div>
+                </div>
+              </article>
+            ))}
           </div>
         </div>
       </div>

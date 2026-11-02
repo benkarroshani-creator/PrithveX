@@ -1,19 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShieldAlert, 
   CheckCircle2, 
   XCircle, 
-  AlertTriangle, 
-  MapPin, 
   Clock, 
-  Users, 
-  FileText, 
   ArrowRight,
   RefreshCw,
-  Edit3
+  Building2,
+  FileText,
+  Store,
+  Coins,
+  Check,
+  X,
+  AlertCircle
 } from 'lucide-react';
-import { CommunityPost, ReportIssue, Recycler } from '../types';
-import { updatePostModerationStatus, updateReportStatus } from '../services/storageService';
+import { CommunityPost, ReportIssue, Recycler, MarketplaceListing, DirectoryCorrection } from '../types';
+import { 
+  updatePostModerationStatus, 
+  updateReportStatus, 
+  getMarketplaceListings,
+  subscribeToMarketplaceListings,
+  updateMarketplaceListingStatus,
+  getDirectoryCorrections,
+  subscribeToDirectoryCorrections,
+  updateDirectoryCorrectionStatus
+} from '../services/storageService';
 import { RECYCLERS } from '../data/recyclers';
 
 interface AdminPageProps {
@@ -29,12 +40,24 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   onRefreshData,
   onShowToast
 }) => {
-  const [activeTab, setActiveTab] = useState<'moderation' | 'reports' | 'recyclers'>('moderation');
+  const [activeTab, setActiveTab] = useState<'moderation' | 'reports' | 'marketplace' | 'corrections' | 'recyclers'>('moderation');
   const [assignWardText, setAssignWardText] = useState<{ [reportId: string]: string }>({});
   const [notesText, setNotesText] = useState<{ [reportId: string]: string }>({});
 
+  const [marketplaceListings, setMarketplaceListings] = useState<MarketplaceListing[]>(getMarketplaceListings());
+  const [corrections, setCorrections] = useState<DirectoryCorrection[]>(getDirectoryCorrections());
+
+  useEffect(() => {
+    const unsubMarket = subscribeToMarketplaceListings((loaded) => setMarketplaceListings(loaded));
+    const unsubCorr = subscribeToDirectoryCorrections((loaded) => setCorrections(loaded));
+    return () => {
+      unsubMarket();
+      unsubCorr();
+    };
+  }, []);
+
   const pendingPosts = posts.filter((p) => p.status === 'Pending review');
-  const approvedPosts = posts.filter((p) => p.status === 'Approved');
+  const pendingCorrections = corrections.filter((c) => c.status === 'pending');
 
   const handleApprovePost = async (id: string) => {
     await updatePostModerationStatus(id, 'Approved');
@@ -62,64 +85,92 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     onShowToast(`Report #${report.id} advanced to ${nextStatus} in Firestore!`, 'success');
   };
 
+  const handleUpdateListingStatus = async (id: string, status: MarketplaceListing['status']) => {
+    await updateMarketplaceListingStatus(id, status);
+    onShowToast(`Listing status updated to ${status}.`, 'success');
+  };
+
+  const handleUpdateCorrection = async (id: string, status: 'verified' | 'rejected') => {
+    await updateDirectoryCorrectionStatus(id, status);
+    onShowToast(`Correction marked as ${status}.`, 'success');
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-      {/* Header */}
-      <div className="p-6 bg-slate-900 text-white rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* Console Header */}
+      <div className="bg-slate-950 text-white rounded-xl p-6 sm:p-7 border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
         <div>
-          <div className="flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5 text-amber-400" />
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
-              PrithveX Portal
-            </span>
+          <div className="flex items-center gap-2 text-xs font-mono text-amber-400">
+            <ShieldAlert className="w-4 h-4" />
+            <span>MUNICIPAL & CIRCULAR OPERATIONS DESK</span>
           </div>
-          <h1 className="text-2xl font-black mt-1">
-            Municipal & Community Moderator Console
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight mt-1 text-white">
+            Civic Operations & Verification Control
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Designed for hackathon judges to verify civic workflows: approve citizen posts, assign municipal inspection wards, and review recycler audits.
+          <p className="text-xs text-slate-400 mt-0.5 max-w-xl">
+            Inspect pending citizen wall stories, advance municipal grievance tickets, audit marketplace trades, and verify user directory corrections.
           </p>
         </div>
 
         {/* Tab switcher */}
-        <div className="flex rounded-xl p-1 bg-slate-800 border border-slate-700 text-xs font-semibold">
+        <div className="flex flex-wrap rounded-lg p-1 bg-slate-900 border border-slate-800 text-xs gap-1">
           <button
             onClick={() => setActiveTab('moderation')}
-            className={`px-3 py-1.5 rounded-lg transition-colors ${
-              activeTab === 'moderation' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+              activeTab === 'moderation' ? 'bg-slate-800 text-white font-semibold' : 'text-slate-400 hover:text-white'
             }`}
           >
-            Post Moderation ({pendingPosts.length})
+            Stories ({pendingPosts.length})
           </button>
           <button
             onClick={() => setActiveTab('reports')}
-            className={`px-3 py-1.5 rounded-lg transition-colors ${
-              activeTab === 'reports' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+              activeTab === 'reports' ? 'bg-slate-800 text-white font-semibold' : 'text-slate-400 hover:text-white'
             }`}
           >
             Grievances ({reports.length})
           </button>
           <button
-            onClick={() => setActiveTab('recyclers')}
-            className={`px-3 py-1.5 rounded-lg transition-colors ${
-              activeTab === 'recyclers' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+            onClick={() => setActiveTab('marketplace')}
+            className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+              activeTab === 'marketplace' ? 'bg-slate-800 text-white font-semibold' : 'text-slate-400 hover:text-white'
             }`}
           >
-            Recycler Audits ({RECYCLERS.length})
+            Marketplace ({marketplaceListings.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('corrections')}
+            className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+              activeTab === 'corrections' ? 'bg-slate-800 text-white font-semibold' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Corrections ({pendingCorrections.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('recyclers')}
+            className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+              activeTab === 'recyclers' ? 'bg-slate-800 text-white font-semibold' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Recyclers ({RECYCLERS.length})
           </button>
         </div>
       </div>
 
-      {/* Content Tabs */}
+      {/* Tab 1: Community Post Moderation */}
       {activeTab === 'moderation' && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-slate-900">
-              Pending Community Submissions ({pendingPosts.length})
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <h2 className="text-sm font-semibold text-slate-900">
+              Citizen Posts Awaiting Verification ({pendingPosts.length})
             </h2>
-            <span className="text-xs text-slate-500">
-              Review citizen actions before they go live on the Community Wall.
-            </span>
+            <button
+              onClick={onRefreshData}
+              className="text-xs text-slate-600 hover:text-slate-900 inline-flex items-center gap-1 font-medium"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Refresh Firestore</span>
+            </button>
           </div>
 
           {pendingPosts.length > 0 ? (
@@ -127,134 +178,160 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               {pendingPosts.map((post) => (
                 <div
                   key={post.id}
-                  className="bg-white rounded-3xl p-6 border-2 border-amber-200 shadow-sm space-y-3"
+                  className="bg-white rounded-xl p-5 border border-slate-300 shadow-2xs space-y-3"
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">
-                        {post.type}
-                      </span>
-                      <h3 className="font-bold text-slate-900 text-sm mt-1">{post.title}</h3>
-                      <p className="text-xs text-slate-500">
-                        By {post.authorName} ({post.authorCity}) • {new Date(post.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-
+                  <div className="flex items-center justify-between text-xs text-slate-500">
                     <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleApprovePost(post.id)}
-                        className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors"
-                      >
-                        <CheckCircle2 className="w-4 h-4" />
-                        <span>Approve Post</span>
-                      </button>
-                      <button
-                        onClick={() => handleRejectPost(post.id)}
-                        className="px-3 py-2 border border-rose-300 hover:bg-rose-50 text-rose-700 font-semibold rounded-xl text-xs flex items-center gap-1 transition-colors"
-                      >
-                        <XCircle className="w-4 h-4" />
-                        <span>Reject</span>
-                      </button>
+                      <span className="font-semibold text-slate-900">{post.authorName}</span>
+                      <span aria-hidden="true" className="text-slate-300">·</span>
+                      <span>{post.authorCity}</span>
+                      <span aria-hidden="true" className="text-slate-300">·</span>
+                      <span>{post.type}</span>
                     </div>
+                    <span>{post.createdAt}</span>
                   </div>
 
-                  <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100 leading-relaxed">
-                    {post.content}
-                  </p>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm">{post.title}</h3>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed whitespace-pre-line">
+                      {post.content}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 text-xs">
+                    <button
+                      onClick={() => handleRejectPost(post.id)}
+                      className="px-3 py-1.5 border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-md font-medium transition-colors"
+                    >
+                      Reject Submission
+                    </button>
+                    <button
+                      onClick={() => handleApprovePost(post.id)}
+                      className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-md font-medium transition-colors inline-flex items-center gap-1.5"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Approve & Publish</span>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="bg-emerald-50 rounded-3xl p-8 border border-emerald-200 text-center space-y-2">
-              <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
-              <h3 className="font-bold text-emerald-950 text-sm">
-                Inbox Clean! No Pending Submissions
-              </h3>
-              <p className="text-xs text-emerald-800 max-w-sm mx-auto">
-                All submitted citizen actions have been reviewed and published to the Community Wall.
-              </p>
+            <div className="bg-white rounded-xl p-10 border border-slate-200 text-center text-xs text-slate-500">
+              <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
+              <p className="font-medium text-slate-900">Moderation Queue Clear</p>
+              <p className="text-slate-500 mt-0.5">All citizen stories have been reviewed.</p>
             </div>
           )}
         </div>
       )}
 
+      {/* Tab 2: Municipal Grievance Redressal */}
       {activeTab === 'reports' && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-slate-900">
-              Municipal Waste Grievances Workflow ({reports.length})
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <h2 className="text-sm font-semibold text-slate-900">
+              Municipal Waste Tickets ({reports.length})
             </h2>
-            <span className="text-xs text-slate-500">
-              Simulates urban local body (ULB) sanitation workflow.
-            </span>
+            <button
+              onClick={onRefreshData}
+              className="text-xs text-slate-600 hover:text-slate-900 inline-flex items-center gap-1 font-medium"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Refresh Firestore</span>
+            </button>
           </div>
 
           <div className="space-y-4">
             {reports.map((report) => (
               <div
                 key={report.id}
-                className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4"
+                className="bg-white rounded-xl p-5 border border-slate-200 shadow-2xs space-y-4 text-xs"
               >
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <div className="flex items-start justify-between border-b border-slate-100 pb-3">
                   <div>
-                    <span className="font-mono text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                      Ticket #{report.id}
-                    </span>
-                    <h3 className="font-bold text-slate-900 text-sm mt-1">{report.issueType}</h3>
-                    <p className="text-xs text-slate-500">
-                      {report.location.locality}, {report.location.city} • Reported by {report.reporterName}
-                    </p>
+                    <div className="flex items-center gap-2 font-mono text-slate-500">
+                      <span>Ticket #{report.id}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>{report.submittedAt}</span>
+                    </div>
+                    <h3 className="font-bold text-slate-900 text-sm mt-0.5">{report.issueType}</h3>
+                    <p className="text-slate-600">{report.location.locality}, {report.location.city}</p>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-800 border">
-                      Current: {report.status}
-                    </span>
-                    {report.status !== 'Resolved' && (
-                      <button
-                        onClick={() => handleAdvanceReport(report)}
-                        className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-xs"
-                      >
-                        <span>Advance Workflow</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                  <span className="px-2.5 py-1 rounded border font-mono text-[11px] font-semibold bg-slate-50 text-slate-800 border-slate-300">
+                    Status: {report.status}
+                  </span>
+                </div>
+
+                <p className="text-slate-700 leading-relaxed">{report.description}</p>
+
+                {/* Ward assignment & inspector notes controls */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <div>
+                    <label className="block text-[11px] font-medium text-slate-700 mb-1">
+                      Assigned Ward / Zonal Sanitation Unit
+                    </label>
+                    <input
+                      type="text"
+                      value={assignWardText[report.id] ?? report.assignedWard ?? ''}
+                      onChange={(e) =>
+                        setAssignWardText({
+                          ...assignWardText,
+                          [report.id]: e.target.value,
+                        })
+                      }
+                      placeholder="e.g. Ward Sanitation Unit 14 - Indiranagar"
+                      className="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:outline-slate-900"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-medium text-slate-700 mb-1">
+                      Officer Inspection Notes
+                    </label>
+                    <input
+                      type="text"
+                      value={notesText[report.id] ?? report.resolutionNotes ?? ''}
+                      onChange={(e) =>
+                        setNotesText({
+                          ...notesText,
+                          [report.id]: e.target.value,
+                        })
+                      }
+                      placeholder="e.g. Site cleared by compactors on morning shift."
+                      className="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:outline-slate-900"
+                    />
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-700 leading-relaxed">
-                  {report.description}
-                </p>
-
-                {/* Ward and notes inputs */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                      Assigned Municipal Ward / Agency
-                    </label>
-                    <input
-                      type="text"
-                      defaultValue={report.assignedWard || 'Ward Sanitation Unit 4'}
-                      onChange={(e) =>
-                        setAssignWardText({ ...assignWardText, [report.id]: e.target.value })
-                      }
-                      className="w-full text-xs px-3 py-1.5 border border-slate-200 rounded-lg"
-                    />
+                {/* Status lifecycle advancement */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <div className="text-[11px] text-slate-500">
+                    Reporter: {report.reporterName || 'Citizen'} ({report.reporterContact || 'Contact on file'})
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                      Resolution Notes / Inspection Memo
-                    </label>
-                    <input
-                      type="text"
-                      defaultValue={report.resolutionNotes || 'Compactor scheduled for clearance'}
-                      onChange={(e) =>
-                        setNotesText({ ...notesText, [report.id]: e.target.value })
-                      }
-                      className="w-full text-xs px-3 py-1.5 border border-slate-200 rounded-lg"
-                    />
-                  </div>
+                  {report.status !== 'Resolved' ? (
+                    <button
+                      onClick={() => handleAdvanceReport(report)}
+                      className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded font-medium inline-flex items-center gap-1.5 transition-colors"
+                    >
+                      <span>
+                        Advance Status to{' '}
+                        {report.status === 'Submitted'
+                          ? 'Under Review'
+                          : report.status === 'Under review'
+                          ? 'Assigned'
+                          : 'Resolved'}
+                      </span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  ) : (
+                    <span className="text-emerald-700 font-medium flex items-center gap-1">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Case Closed & Cleared</span>
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
@@ -262,51 +339,171 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         </div>
       )}
 
-      {activeTab === 'recyclers' && (
+      {/* Tab 3: Marketplace Moderation */}
+      {activeTab === 'marketplace' && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-slate-900">
-              Verified Circular Facilities ({RECYCLERS.length})
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <h2 className="text-sm font-semibold text-slate-900">
+              Active Marketplace Listings ({marketplaceListings.length})
             </h2>
-            <span className="text-xs text-slate-500">
-              Audit status under CPCB EPR Guidelines 2026.
-            </span>
+            <span className="text-xs text-slate-500">P2P Fair Trade Supervision</span>
           </div>
 
-          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[10px]">
-                  <tr>
-                    <th className="p-3.5">Facility Name</th>
-                    <th className="p-3.5">City & State</th>
-                    <th className="p-3.5">Verification</th>
-                    <th className="p-3.5">Audit Date</th>
-                    <th className="p-3.5">Accepted Streams</th>
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                <tr>
+                  <th className="p-3.5">Listing Title</th>
+                  <th className="p-3.5">Type</th>
+                  <th className="p-3.5">Quantity</th>
+                  <th className="p-3.5">Location</th>
+                  <th className="p-3.5">Status</th>
+                  <th className="p-3.5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                {marketplaceListings.map((l) => (
+                  <tr key={l.id} className="hover:bg-slate-50/60 transition-colors">
+                    <td className="p-3.5 font-medium text-slate-900">{l.title}</td>
+                    <td className="p-3.5 uppercase font-bold text-[10px] text-slate-600">{l.type}</td>
+                    <td className="p-3.5">{l.quantity} {l.unit}</td>
+                    <td className="p-3.5">{l.city} ({l.locality})</td>
+                    <td className="p-3.5">
+                      <span className={`px-2 py-0.5 rounded text-[11px] font-medium ${
+                        l.status === 'available' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                      }`}>
+                        {l.status}
+                      </span>
+                    </td>
+                    <td className="p-3.5 text-right space-x-1.5">
+                      {l.status === 'available' && (
+                        <button
+                          onClick={() => handleUpdateListingStatus(l.id, 'completed')}
+                          className="px-2 py-1 text-[11px] bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded font-medium"
+                        >
+                          Mark Completed
+                        </button>
+                      )}
+                      {l.status !== 'cancelled' && (
+                        <button
+                          onClick={() => handleUpdateListingStatus(l.id, 'cancelled')}
+                          className="px-2 py-1 text-[11px] bg-rose-50 hover:bg-rose-100 text-rose-800 rounded font-medium"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-600">
-                  {RECYCLERS.map((r) => (
-                    <tr key={r.id} className="hover:bg-slate-50">
-                      <td className="p-3.5 font-bold text-slate-800">{r.name}</td>
-                      <td className="p-3.5">{r.city}, {r.state}</td>
-                      <td className="p-3.5">
-                        <span className="inline-flex items-center gap-1 font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[10px]">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          <span>CPCB Verified</span>
-                        </span>
-                      </td>
-                      <td className="p-3.5">{r.lastVerifiedDate}</td>
-                      <td className="p-3.5">
-                        <span className="truncate max-w-[200px] inline-block">
-                          {r.acceptedCategories.join(', ')}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 4: Directory Corrections */}
+      {activeTab === 'corrections' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <h2 className="text-sm font-semibold text-slate-900">
+              Community Directory Corrections & New Submissions ({corrections.length})
+            </h2>
+          </div>
+
+          {corrections.length === 0 ? (
+            <div className="bg-white rounded-xl p-10 border border-slate-200 text-center text-xs text-slate-500">
+              <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
+              <p className="font-medium text-slate-900">No Pending Suggestions</p>
+              <p className="text-slate-500 mt-0.5">Citizen directory feedback will appear here.</p>
             </div>
+          ) : (
+            <div className="space-y-3">
+              {corrections.map((corr) => (
+                <div key={corr.id} className="bg-white rounded-xl p-5 border border-slate-200 shadow-2xs space-y-3 text-xs">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-bold text-slate-900 uppercase text-[10px] tracking-wide bg-slate-100 px-2 py-0.5 rounded mr-2">
+                        {corr.targetType}
+                      </span>
+                      <span className="font-bold text-slate-900">{corr.targetName}</span>
+                      <span className="text-slate-500 ml-2">({corr.city}, {corr.state})</span>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded text-[11px] font-medium ${
+                      corr.status === 'verified' ? 'bg-emerald-50 text-emerald-800' : corr.status === 'rejected' ? 'bg-rose-50 text-rose-800' : 'bg-amber-50 text-amber-800'
+                    }`}>
+                      {corr.status}
+                    </span>
+                  </div>
+
+                  <p className="text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                    {corr.notes}
+                  </p>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-[11px] text-slate-500">Contact: {corr.reporterContact || 'Anonymous citizen'}</span>
+                    {corr.status === 'pending' && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleUpdateCorrection(corr.id, 'rejected')}
+                          className="px-3 py-1 border border-slate-200 hover:bg-slate-100 rounded text-slate-700 font-medium"
+                        >
+                          Reject
+                        </button>
+                        <button
+                          onClick={() => handleUpdateCorrection(corr.id, 'verified')}
+                          className="px-3 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded font-medium"
+                        >
+                          Verify & Update Directory
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab 5: Recycler Verification Audits */}
+      {activeTab === 'recyclers' && (
+        <div className="space-y-6">
+          <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-slate-900">
+              State Pollution Control Board Authorized Facilities ({RECYCLERS.length})
+            </h2>
+            <span className="text-xs text-slate-500 font-mono">CPCB Schedule 1 Audit</span>
+          </div>
+
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                <tr>
+                  <th className="p-3.5">Facility Name</th>
+                  <th className="p-3.5">City Hub</th>
+                  <th className="p-3.5">Materials Handled</th>
+                  <th className="p-3.5">Logistics</th>
+                  <th className="p-3.5">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                {RECYCLERS.map((r) => (
+                  <tr key={r.id} className="hover:bg-slate-50/60 transition-colors">
+                    <td className="p-3.5 font-medium text-slate-900">{r.name}</td>
+                    <td className="p-3.5">{r.city}</td>
+                    <td className="p-3.5">{r.acceptedCategories.map((c) => c.replace('_', ' ')).join(', ')}</td>
+                    <td className="p-3.5">{r.collectionMethods.join(', ')}</td>
+                    <td className="p-3.5">
+                      {r.isVerified ? (
+                        <span className="text-teal-700 font-medium">SPCB Verified</span>
+                      ) : (
+                        <span className="text-slate-400">Aggregator</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

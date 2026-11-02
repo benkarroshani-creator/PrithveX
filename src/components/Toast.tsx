@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 export interface ToastData {
@@ -19,27 +19,22 @@ export const ToastContainer: React.FC<ToastProps> = ({ toasts, onDismiss }) => {
         return (
           <div
             key={toast.id}
-            className={`pointer-events-auto flex items-center justify-between p-3.5 rounded-xl shadow-lg border text-xs font-medium animate-in slide-in-from-bottom duration-200 ${
-              toast.type === 'error'
-                ? 'bg-rose-50 border-rose-200 text-rose-900'
-                : toast.type === 'info'
-                ? 'bg-blue-50 border-blue-200 text-blue-900'
-                : 'bg-emerald-50 border-emerald-200 text-emerald-900'
-            }`}
+            className="pointer-events-auto flex items-center justify-between p-3.5 rounded-lg shadow-lg border border-slate-800 bg-slate-950 text-white text-xs font-medium animate-in slide-in-from-bottom duration-150"
           >
             <div className="flex items-center gap-2.5">
               {toast.type === 'error' ? (
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
               ) : toast.type === 'info' ? (
-                <Info className="w-4 h-4 text-blue-600 shrink-0" />
+                <Info className="w-4 h-4 text-sky-400 shrink-0" />
               ) : (
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               )}
-              <span>{toast.message}</span>
+              <span className="leading-snug">{toast.message}</span>
             </div>
             <button
               onClick={() => onDismiss(toast.id)}
-              className="ml-2 text-slate-400 hover:text-slate-600 p-0.5"
+              className="ml-3 text-slate-400 hover:text-white p-0.5 transition-colors"
+              aria-label="Dismiss toast"
             >
               <X className="w-3.5 h-3.5" />
             </button>

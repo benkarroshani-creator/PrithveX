@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, UserCircle2, MapPin, CheckCircle2, LogOut, ShieldCheck, Sparkles } from 'lucide-react';
+import { X, User, LogOut, ShieldCheck } from 'lucide-react';
 import { UserProfile } from '../types';
 import { loginWithGoogle, loginAsDemo, logoutUser } from '../services/authService';
 import { saveUserProfile } from '../services/storageService';
@@ -83,62 +83,56 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-emerald-800 to-teal-900 p-6 text-white flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-white">
-              <UserCircle2 className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold">
-                {currentUser.isLoggedIn ? 'Citizen Account' : 'Firebase Authentication'}
-              </h3>
-              <p className="text-xs text-emerald-200">
-                {currentUser.isLoggedIn ? 'Synced with Firebase Firestore' : 'Secure cloud persistence & civic records'}
-              </p>
-            </div>
+      <div className="bg-white rounded-xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
+        {/* Modal Header */}
+        <div className="bg-slate-950 px-6 py-5 text-white flex items-center justify-between border-b border-slate-800">
+          <div>
+            <h3 className="text-sm font-semibold text-white">
+              {currentUser.isLoggedIn ? 'Citizen Account Profile' : 'Citizen Authentication'}
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {currentUser.isLoggedIn ? 'Persistent Firestore records & personal stats' : 'Sign in to record segregation & civic grievances'}
+            </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-emerald-100 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1 rounded text-slate-400 hover:text-white transition-colors"
+            aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Content */}
+        {/* Modal Content */}
         <div className="p-6">
           {currentUser.isLoggedIn ? (
             <div className="space-y-4">
-              <div className="flex items-center gap-3 p-3.5 bg-emerald-50 rounded-2xl border border-emerald-100">
-                <div className="w-12 h-12 rounded-full bg-emerald-700 text-white font-black text-lg flex items-center justify-center shadow-xs">
+              <div className="flex items-center gap-3 p-3.5 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="w-10 h-10 rounded-full bg-slate-900 text-white font-bold text-sm flex items-center justify-center">
                   {currentUser.name.charAt(0).toUpperCase()}
                 </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <h4 className="font-bold text-slate-900 text-sm">{currentUser.name}</h4>
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-200 text-emerald-900">
-                      Firebase Verified
-                    </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-semibold text-slate-900 text-xs truncate">{currentUser.name}</h4>
+                    <span className="text-[10px] text-emerald-700 font-medium">Verified</span>
                   </div>
-                  <p className="text-xs text-slate-500">{currentUser.email}</p>
-                  <p className="text-[11px] text-emerald-700 font-medium mt-0.5">
+                  <p className="text-xs text-slate-500 truncate">{currentUser.email}</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
                     Member since {new Date(currentUser.joinedDate).toLocaleDateString()}
                   </p>
                 </div>
               </div>
 
-              {/* City Setting */}
+              {/* City Selection */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Default City (For Recycler Matching & Municipal Wards)
+                <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                  Default City for Local Recyclers & Ward Routing
                 </label>
                 <div className="flex gap-2">
                   <select
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    className="flex-1 text-xs border border-slate-200 rounded-xl px-3 py-2 bg-slate-50 focus:bg-white focus:outline-emerald-600"
+                    className="flex-1 text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white text-slate-800 focus:outline-slate-900"
                   >
                     <option value="Bengaluru">Bengaluru</option>
                     <option value="Mumbai">Mumbai</option>
@@ -151,37 +145,37 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   </select>
                   <button
                     onClick={handleCityUpdate}
-                    className="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl"
+                    className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium rounded-lg transition-colors"
                   >
                     Save
                   </button>
                 </div>
               </div>
 
-              {/* Summary Stats */}
-              <div className="grid grid-cols-2 gap-2 text-center pt-2">
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                  <p className="text-xl font-black text-emerald-700">{currentUser.stats.itemsIdentified}</p>
-                  <p className="text-[10px] text-slate-500 font-medium">Items Classified</p>
+              {/* Citizen Stats */}
+              <div className="grid grid-cols-2 gap-2 text-center pt-1">
+                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <p className="text-lg font-bold text-slate-900 tabular-nums">{currentUser.stats.itemsIdentified}</p>
+                  <p className="text-[11px] text-slate-500">Items Segregated</p>
                 </div>
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                  <p className="text-xl font-black text-teal-700">{currentUser.stats.wasteDivertedKg} kg</p>
-                  <p className="text-[10px] text-slate-500 font-medium">Waste Diverted</p>
+                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <p className="text-lg font-bold text-slate-900 tabular-nums">{currentUser.stats.wasteDivertedKg} kg</p>
+                  <p className="text-[11px] text-slate-500">Waste Diverted</p>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex gap-2">
+              <div className="pt-3 border-t border-slate-200 flex gap-2">
                 <button
                   onClick={handleLogout}
                   disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold transition-colors"
+                  className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-medium transition-colors"
                 >
-                  <LogOut className="w-4 h-4 text-slate-500" />
+                  <LogOut className="w-3.5 h-3.5 text-slate-500" />
                   <span>Sign Out</span>
                 </button>
                 <button
                   onClick={onClose}
-                  className="w-full py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition-colors"
+                  className="w-full py-2.5 px-4 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium transition-colors"
                 >
                   Done
                 </button>
@@ -189,18 +183,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-xs text-slate-600 flex items-start gap-2.5">
-                <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                <p>
-                  Sign in with Firebase to synchronize your waste diversion records, submit municipal black-spot tickets, and interact on the community wall.
+              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-600 flex items-start gap-2.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <p className="leading-relaxed">
+                  Sign in with Firebase to record your personal diversion impact, track municipal grievance tickets, and share zero-waste actions.
                 </p>
               </div>
 
-              {/* Primary Google Login Button */}
+              {/* Google Login */}
               <button
                 onClick={handleGoogleSignIn}
                 disabled={isSubmitting}
-                className="w-full py-3 px-4 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-2xl text-xs font-bold shadow-xs flex items-center justify-center gap-3 transition-all"
+                className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-lg text-xs font-medium shadow-2xs flex items-center justify-center gap-3 transition-colors"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
@@ -224,26 +218,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
 
               <div className="relative flex py-1 items-center">
-                <div className="flex-grow border-t border-slate-200"></div>
-                <span className="flex-shrink mx-3 text-slate-400 text-[10px] font-bold uppercase tracking-wider">
-                  or quick testing
+                <div className="flex-grow border-t border-slate-200" />
+                <span className="flex-shrink mx-3 text-slate-400 text-[10px] uppercase tracking-wider">
+                  or evaluation mode
                 </span>
-                <div className="flex-grow border-t border-slate-200"></div>
+                <div className="flex-grow border-t border-slate-200" />
               </div>
 
-              {/* Demo Sign In Button */}
+              {/* Demo Sign In */}
               <button
                 type="button"
                 onClick={handleDemoSignIn}
                 disabled={isSubmitting}
-                className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+                className="w-full py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-medium transition-colors"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span>Instant Sign In (Demo Citizen)</span>
+                Instant Demo Citizen (Anonymous Auth)
               </button>
 
               <p className="text-[11px] text-slate-400 text-center pt-1">
-                Protected by Firebase Authentication & Firestore Security Rules.
+                Protected by Firebase Firestore Security Rules
               </p>
             </div>
           )}

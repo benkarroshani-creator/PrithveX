@@ -3,20 +3,19 @@ import {
   Sparkles, 
   Search, 
   MapPin, 
-  BookOpen, 
-  AlertTriangle, 
   ArrowRight, 
   CheckCircle2, 
-  Recycle, 
-  ShieldCheck, 
-  TrendingUp, 
-  Leaf, 
-  Cpu, 
-  HeartHandshake, 
-  Droplet,
-  ExternalLink
+  Coins, 
+  Store, 
+  Compass, 
+  AlertTriangle,
+  Building2,
+  Cpu,
+  Layers,
+  Shield,
+  FileText
 } from 'lucide-react';
-import { WASTE_ITEMS, WASTE_CATEGORIES_INFO } from '../data/wasteItems';
+import { WASTE_ITEMS } from '../data/wasteItems';
 import { WasteCard } from '../components/WasteCard';
 import { WasteItem } from '../types';
 
@@ -44,489 +43,445 @@ export const HomePage: React.FC<HomePageProps> = ({
   };
 
   return (
-    <div className="space-y-16 pb-12">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-emerald-900 via-emerald-950 to-slate-950 text-white pt-16 pb-20 px-4 sm:px-6 lg:px-8">
-        {/* Subtle decorative background mesh */}
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none"></div>
+    <div className="space-y-16 lg:space-y-24 pb-16 bg-[#F4F6F8]">
+      {/* 1. Hero Section: Editorial, Confident & Restrained */}
+      <section className="bg-[#111C2E] text-white pt-14 pb-20 px-4 sm:px-6 lg:px-8 border-b border-[#253247]">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            {/* Left Column: Proposition & Action */}
+            <div className="lg:col-span-7 space-y-6">
+              <div className="flex items-center gap-2 text-xs text-[#E3E8EF] font-medium">
+                <span className="text-[#19B5A5] font-bold uppercase tracking-wider">Swachh Bharat & SWM Compliant</span>
+                <span aria-hidden="true" className="text-[#718096]">·</span>
+                <span>Circular Economy Infrastructure</span>
+              </div>
 
-        <div className="max-w-6xl mx-auto relative z-10 text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold backdrop-blur-xs">
-            <Leaf className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Circular India Initiative • SWM Rules 2016 Compliant</span>
-          </div>
+              <div className="space-y-3">
+                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.1]">
+                  Turn Waste Into <br className="hidden sm:inline" />
+                  <span className="text-[#19B5A5]">
+                    Better Decisions.
+                  </span>
+                </h1>
+                <p className="text-[#E3E8EF] text-sm sm:text-base leading-relaxed max-w-xl pt-1">
+                  Identify waste, discover responsible disposal options and connect with recyclers and buyers through one intelligent platform.
+                </p>
+              </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white max-w-4xl mx-auto leading-tight sm:leading-tight">
-            Turn Every Discard into a Resource with <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-200">PrithveX</span>
-          </h1>
+              {/* Fast Search Input */}
+              <form 
+                onSubmit={handleSearchSubmit}
+                className="max-w-lg flex items-center bg-[#253247]/60 border border-[#253247] rounded-xl p-1.5 focus-within:border-[#19B5A5] transition-colors"
+              >
+                <Search className="w-4 h-4 text-[#718096] ml-2.5 shrink-0" />
+                <input
+                  type="text"
+                  value={quickSearch}
+                  onChange={(e) => setQuickSearch(e.target.value)}
+                  placeholder="Search item (e.g. milk pouch, lithium battery, cardboard, PET)..."
+                  className="w-full px-3 py-2 text-xs sm:text-sm text-white placeholder-[#718096] bg-transparent focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#19B5A5] text-white hover:bg-[#138D81] text-xs font-bold rounded-lg transition-colors shrink-0 shadow-sm"
+                >
+                  Search
+                </button>
+              </form>
 
-          <p className="text-base sm:text-lg text-emerald-100/90 max-w-2xl mx-auto font-normal leading-relaxed">
-            India generates 62 million tonnes of waste every year. PrithveX bridges the gap with instant vision-assisted waste identification, responsible disposal pathways, and verified local recycling directories.
-          </p>
+              {/* Primary & Secondary Action CTAs */}
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <button
+                  onClick={() => onNavigate('identify')}
+                  className="px-5 py-3 bg-[#19B5A5] hover:bg-[#138D81] text-white font-bold rounded-xl text-xs sm:text-sm flex items-center gap-2 transition-all shadow-sm"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Identify Waste</span>
+                </button>
 
-          {/* Quick Search Bar */}
-          <form 
-            onSubmit={handleSearchSubmit}
-            className="max-w-xl mx-auto relative flex items-center bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-1.5 shadow-2xl focus-within:ring-2 focus-within:ring-emerald-400 focus-within:bg-white/15 transition-all"
-          >
-            <Search className="w-5 h-5 text-emerald-300 ml-3 shrink-0" />
-            <input
-              type="text"
-              value={quickSearch}
-              onChange={(e) => setQuickSearch(e.target.value)}
-              placeholder="Search an item (e.g. milk packet, battery, medicine, jeans)..."
-              className="w-full px-3 py-2 text-sm text-white placeholder-emerald-200/60 bg-transparent focus:outline-hidden"
-            />
-            <button
-              type="submit"
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-colors shrink-0 shadow-sm"
-            >
-              Search
-            </button>
-          </form>
+                <button
+                  onClick={() => onNavigate('map')}
+                  className="px-5 py-3 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold rounded-xl text-xs sm:text-sm flex items-center gap-2 transition-all shadow-sm"
+                >
+                  <Compass className="w-4 h-4 text-[#19B5A5]" />
+                  <span>Explore Circularity Map</span>
+                </button>
 
-          {/* CTAs */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            <button
-              onClick={() => onNavigate('identify')}
-              className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl text-sm shadow-lg shadow-emerald-600/30 flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all"
-            >
-              <Sparkles className="w-4 h-4 text-emerald-200" />
-              <span>Identify Your Waste (AI Vision)</span>
-            </button>
+                <button
+                  onClick={() => onNavigate('buyers')}
+                  className="px-4 py-3 bg-transparent hover:bg-white/5 text-[#E3E8EF] hover:text-white border border-[#253247] font-semibold rounded-xl text-xs flex items-center gap-2 transition-all"
+                >
+                  <Coins className="w-3.5 h-3.5 text-[#E8A84E]" />
+                  <span>Find Buyers</span>
+                </button>
+              </div>
 
-            <button
-              onClick={() => onNavigate('recyclers')}
-              className="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-semibold rounded-2xl text-sm backdrop-blur-xs flex items-center gap-2 transition-all"
-            >
-              <MapPin className="w-4 h-4 text-emerald-300" />
-              <span>Find a Recycler Nearby</span>
-            </button>
-          </div>
-
-          {/* Micro Stat Badges */}
-          <div className="pt-6 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto text-left text-xs">
-            <div className="bg-white/5 border border-white/10 rounded-xl p-3 backdrop-blur-xs">
-              <p className="text-emerald-400 font-black text-lg">14+</p>
-              <p className="text-emerald-100/70 text-[11px]">Waste Categories Covered</p>
+              {/* Key Baseline Metrics */}
+              <div className="pt-6 grid grid-cols-3 gap-6 border-t border-[#253247] max-w-lg">
+                <div>
+                  <p className="text-xl font-bold text-white tabular-nums">11 Layers</p>
+                  <p className="text-[11px] text-[#718096] mt-0.5">Circularity Map Markers</p>
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-white tabular-nums">100% SPCB</p>
+                  <p className="text-[11px] text-[#718096] mt-0.5">Authorized Directory</p>
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-white tabular-nums">0.35 kg</p>
+                  <p className="text-[11px] text-[#718096] mt-0.5">Diverted per Sort</p>
+                </div>
+              </div>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-xl p-3 backdrop-blur-xs">
-              <p className="text-teal-400 font-black text-lg">8 Major</p>
-              <p className="text-emerald-100/70 text-[11px]">Indian City Recycler Hubs</p>
-            </div>
-            <div className="bg-white/5 border border-white/10 rounded-xl p-3 backdrop-blur-xs">
-              <p className="text-emerald-300 font-black text-lg">100%</p>
-              <p className="text-emerald-100/70 text-[11px]">CPCB SWM 2016 Compliant</p>
-            </div>
-            <div className="bg-white/5 border border-white/10 rounded-xl p-3 backdrop-blur-xs">
-              <p className="text-teal-300 font-black text-lg">Dual AI</p>
-              <p className="text-emerald-100/70 text-[11px]">Gemini 3.8 + Offline Fallback</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Quick Action Navigation Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <div 
-            onClick={() => onNavigate('identify')}
-            className="cursor-pointer bg-white rounded-2xl p-4 border border-slate-200 shadow-md hover:shadow-lg hover:border-emerald-500 transition-all flex flex-col items-center text-center group"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-              <Sparkles className="w-6 h-6" />
+            {/* Right Column: Editorial Visual Asset */}
+            <div className="lg:col-span-5">
+              <div className="relative border border-[#253247] rounded-2xl overflow-hidden bg-[#111C2E] shadow-2xl">
+                <img
+                  src="/src/assets/images/hero_segregation_clean_1791110763384.jpg"
+                  alt="Household source segregation with clean dry recyclable boxes and compost khamba"
+                  className="w-full h-80 lg:h-96 object-cover"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="p-4 bg-[#111C2E]/95 border-t border-[#253247] text-xs">
+                  <div className="flex items-center justify-between text-[11px] text-[#E3E8EF] mb-1">
+                    <span className="font-bold text-white">Urban Source Segregation</span>
+                    <span className="text-[#19B5A5] font-semibold">SWM Rule 4(1)(a)</span>
+                  </div>
+                  <p className="text-[11px] text-[#718096] leading-normal">
+                    Household separation of wet biodegradables, clean dry recyclables, and domestic hazardous waste before channelization.
+                  </p>
+                </div>
+              </div>
             </div>
-            <h3 className="font-bold text-slate-800 text-xs sm:text-sm">Identify Waste</h3>
-            <p className="text-[11px] text-slate-500 mt-0.5">Upload image or photo</p>
-          </div>
-
-          <div 
-            onClick={() => onNavigate('search')}
-            className="cursor-pointer bg-white rounded-2xl p-4 border border-slate-200 shadow-md hover:shadow-lg hover:border-blue-500 transition-all flex flex-col items-center text-center group"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-              <Search className="w-6 h-6" />
-            </div>
-            <h3 className="font-bold text-slate-800 text-xs sm:text-sm">Search an Item</h3>
-            <p className="text-[11px] text-slate-500 mt-0.5">30+ Indian items database</p>
-          </div>
-
-          <div 
-            onClick={() => onNavigate('recyclers')}
-            className="cursor-pointer bg-white rounded-2xl p-4 border border-slate-200 shadow-md hover:shadow-lg hover:border-teal-500 transition-all flex flex-col items-center text-center group"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-700 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-              <MapPin className="w-6 h-6" />
-            </div>
-            <h3 className="font-bold text-slate-800 text-xs sm:text-sm">Find Recycler</h3>
-            <p className="text-[11px] text-slate-500 mt-0.5">Doorstep & drop-off hubs</p>
-          </div>
-
-          <div 
-            onClick={() => onNavigate('learn')}
-            className="cursor-pointer bg-white rounded-2xl p-4 border border-slate-200 shadow-md hover:shadow-lg hover:border-purple-500 transition-all flex flex-col items-center text-center group"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-              <BookOpen className="w-6 h-6" />
-            </div>
-            <h3 className="font-bold text-slate-800 text-xs sm:text-sm">Learn Segregation</h3>
-            <p className="text-[11px] text-slate-500 mt-0.5">Composting & 5R guides</p>
-          </div>
-
-          <div 
-            onClick={() => onNavigate('report')}
-            className="cursor-pointer bg-white rounded-2xl p-4 border border-slate-200 shadow-md hover:shadow-lg hover:border-rose-500 transition-all flex flex-col items-center text-center group col-span-2 sm:col-span-1"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-700 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
-            <h3 className="font-bold text-slate-800 text-xs sm:text-sm">Report Waste Issue</h3>
-            <p className="text-[11px] text-slate-500 mt-0.5">Garbage dumps & overflow</p>
           </div>
         </div>
       </section>
 
-      {/* Visual Segregation Section (The 5-Stream Rule in India) */}
+      {/* 2. Feature Callout: PrithveX Circularity Map */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-            Source Segregation Architecture
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
-            The 5 Standard Segregation Streams
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-600 mt-2">
-            Solid Waste Management Rules 2016 mandate separation at the point of origin. Putting the wrong item in the wrong stream renders recyclables worthless and hazardous.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {/* 1. Wet / Organic */}
-          <div className="bg-emerald-50/70 border-2 border-emerald-300 rounded-2xl p-4 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
-                  01
-                </span>
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-200 text-emerald-900">
-                  Green Bin
-                </span>
+        <div className="bg-white border border-[#E3E8EF] rounded-2xl p-6 sm:p-10 shadow-sm overflow-hidden relative">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-7 space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E7F8F6] text-[#138D81] text-xs font-bold">
+                <Compass className="w-3.5 h-3.5" />
+                Dedicated Platform Feature
               </div>
-              <h3 className="font-bold text-emerald-950 text-sm">Wet / Organic</h3>
-              <p className="text-xs text-emerald-800 mt-1">
-                Vegetable rinds, fruit peels, leftover raw scraps, tea leaves.
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111C2E]">
+                PrithveX Circularity Map
+              </h2>
+              <p className="text-sm text-[#718096] leading-relaxed">
+                Connect your household or enterprise directly to nearby recycling centres, certified scrap dealers, waste buyers, e-waste drop-off points, composting stations, and citizen-reported waste hotspots across India.
               </p>
-              <div className="mt-3 p-2 bg-white/80 rounded-xl text-[11px] text-emerald-900 border border-emerald-200">
-                <strong>Destination:</strong> Home compost khamba, community vermicompost, or biogas digesters.
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2 text-xs">
+                <div className="flex items-center gap-2 text-[#253247] font-semibold">
+                  <CheckCircle2 className="w-4 h-4 text-[#19B5A5]" />
+                  <span>11 Category Markers</span>
+                </div>
+                <div className="flex items-center gap-2 text-[#253247] font-semibold">
+                  <CheckCircle2 className="w-4 h-4 text-[#19B5A5]" />
+                  <span>"Find Near Me" GPS</span>
+                </div>
+                <div className="flex items-center gap-2 text-[#253247] font-semibold">
+                  <CheckCircle2 className="w-4 h-4 text-[#19B5A5]" />
+                  <span>Smart Route Directions</span>
+                </div>
+                <div className="flex items-center gap-2 text-[#253247] font-semibold">
+                  <CheckCircle2 className="w-4 h-4 text-[#19B5A5]" />
+                  <span>Civic Hotspot Tracking</span>
+                </div>
+                <div className="flex items-center gap-2 text-[#253247] font-semibold">
+                  <CheckCircle2 className="w-4 h-4 text-[#19B5A5]" />
+                  <span>Smart Matching Engine</span>
+                </div>
+                <div className="flex items-center gap-2 text-[#253247] font-semibold">
+                  <CheckCircle2 className="w-4 h-4 text-[#19B5A5]" />
+                  <span>SPCB Verified Hubs</span>
+                </div>
+              </div>
+
+              <div className="pt-4 flex flex-wrap gap-3">
+                <button
+                  onClick={() => onNavigate('map')}
+                  className="px-5 py-2.5 bg-[#111C2E] hover:bg-[#253247] text-white text-xs sm:text-sm font-bold rounded-xl flex items-center gap-2 transition-all shadow-sm"
+                >
+                  <Compass className="w-4 h-4 text-[#19B5A5]" />
+                  <span>Open Interactive Map</span>
+                </button>
+                <button
+                  onClick={() => onNavigate('map', 'ewaste_centre')}
+                  className="px-4 py-2.5 bg-[#F4F6F8] hover:bg-[#E3E8EF] text-[#253247] text-xs font-semibold rounded-xl transition-all border border-[#E3E8EF]"
+                >
+                  Find E-Waste Centers
+                </button>
               </div>
             </div>
-            <button 
-              onClick={() => onNavigate('search', 'vegetable peels')}
-              className="mt-4 text-xs font-bold text-emerald-800 hover:text-emerald-950 flex items-center gap-1"
-            >
-              <span>Explore Wet Stream</span>
-              <ArrowRight className="w-3 h-3" />
-            </button>
-          </div>
 
-          {/* 2. Dry Recyclable */}
-          <div className="bg-blue-50/70 border-2 border-blue-300 rounded-2xl p-4 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
-                  02
-                </span>
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-blue-200 text-blue-900">
-                  Blue Bin
-                </span>
+            <div className="lg:col-span-5 bg-[#F4F6F8] rounded-xl p-5 border border-[#E3E8EF]">
+              <div className="flex items-center justify-between pb-3 border-b border-[#E3E8EF] text-xs font-bold text-[#111C2E]">
+                <span>Active Map Legend</span>
+                <span className="text-[#19B5A5]">Pan-India Network</span>
               </div>
-              <h3 className="font-bold text-blue-950 text-sm">Dry Recyclable</h3>
-              <p className="text-xs text-blue-800 mt-1">
-                Clean rinsed milk pouches, cardboard cartons, newspapers, metal cans, glass jars.
-              </p>
-              <div className="mt-3 p-2 bg-white/80 rounded-xl text-[11px] text-blue-900 border border-blue-200">
-                <strong>Destination:</strong> Scrap dealers (kabadiwalas), Material Recovery Facilities (MRF).
+              <div className="space-y-2.5 mt-3 text-xs">
+                <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-[#E3E8EF]">
+                  <span className="flex items-center gap-2 font-medium text-[#253247]">
+                    <span className="w-3 h-3 rounded-full bg-[#19B5A5]" />
+                    Recycling Centres
+                  </span>
+                  <span className="font-bold text-[#718096]">SZW, Hasiru Dala</span>
+                </div>
+                <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-[#E3E8EF]">
+                  <span className="flex items-center gap-2 font-medium text-[#253247]">
+                    <span className="w-3 h-3 rounded-full bg-[#7667E8]" />
+                    E-Waste Collection Hubs
+                  </span>
+                  <span className="font-bold text-[#718096]">Attero, Chintan</span>
+                </div>
+                <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-[#E3E8EF]">
+                  <span className="flex items-center gap-2 font-medium text-[#253247]">
+                    <span className="w-3 h-3 rounded-full bg-[#E8A84E]" />
+                    Scrap Dealers & Aggregators
+                  </span>
+                  <span className="font-bold text-[#718096]">ScrapUncle, RaddiConnect</span>
+                </div>
+                <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-[#E3E8EF]">
+                  <span className="flex items-center gap-2 font-medium text-[#253247]">
+                    <span className="w-3 h-3 rounded-full bg-[#EA580C]" />
+                    Circular Donation Hubs
+                  </span>
+                  <span className="font-bold text-[#718096]">Goonj, Greensole</span>
+                </div>
+                <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-[#E3E8EF]">
+                  <span className="flex items-center gap-2 font-medium text-[#253247]">
+                    <span className="w-3 h-3 rounded-full bg-[#E11D48]" />
+                    Civic Waste Hotspots
+                  </span>
+                  <span className="font-bold text-[#BE123C]">Citizen Reported</span>
+                </div>
               </div>
             </div>
-            <button 
-              onClick={() => onNavigate('search', 'milk pouch')}
-              className="mt-4 text-xs font-bold text-blue-800 hover:text-blue-950 flex items-center gap-1"
-            >
-              <span>Explore Dry Stream</span>
-              <ArrowRight className="w-3 h-3" />
-            </button>
-          </div>
-
-          {/* 3. Hazardous Waste */}
-          <div className="bg-rose-50/70 border-2 border-rose-300 rounded-2xl p-4 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center font-bold text-xs">
-                  03
-                </span>
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-rose-200 text-rose-900">
-                  Red Bin
-                </span>
-              </div>
-              <h3 className="font-bold text-rose-950 text-sm">Domestic Hazardous</h3>
-              <p className="text-xs text-rose-800 mt-1">
-                Paints, chemical thinners, expired pills, thermometers, insecticide cans.
-              </p>
-              <div className="mt-3 p-2 bg-white/80 rounded-xl text-[11px] text-rose-900 border border-rose-200">
-                <strong>Destination:</strong> Common Hazardous Waste Facilities (TSDF) for safe neutralization.
-              </div>
-            </div>
-            <button 
-              onClick={() => onNavigate('search', 'expired medicine')}
-              className="mt-4 text-xs font-bold text-rose-800 hover:text-rose-950 flex items-center gap-1"
-            >
-              <span>Explore Hazardous</span>
-              <ArrowRight className="w-3 h-3" />
-            </button>
-          </div>
-
-          {/* 4. E-Waste & Batteries */}
-          <div className="bg-slate-100 border-2 border-slate-300 rounded-2xl p-4 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="w-8 h-8 rounded-xl bg-slate-700 text-white flex items-center justify-center font-bold text-xs">
-                  04
-                </span>
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-900">
-                  Grey Stream
-                </span>
-              </div>
-              <h3 className="font-bold text-slate-900 text-sm">E-Waste & Batteries</h3>
-              <p className="text-xs text-slate-600 mt-1">
-                Dead phones, charging cords, Li-ion batteries, laptop power bricks.
-              </p>
-              <div className="mt-3 p-2 bg-white/80 rounded-xl text-[11px] text-slate-800 border border-slate-200">
-                <strong>Destination:</strong> CPCB registered e-waste recyclers for precious metal recovery.
-              </div>
-            </div>
-            <button 
-              onClick={() => onNavigate('search', 'battery')}
-              className="mt-4 text-xs font-bold text-slate-800 hover:text-slate-950 flex items-center gap-1"
-            >
-              <span>Explore E-Waste</span>
-              <ArrowRight className="w-3 h-3" />
-            </button>
-          </div>
-
-          {/* 5. Sanitary Waste */}
-          <div className="bg-amber-50/70 border-2 border-amber-300 rounded-2xl p-4 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="w-8 h-8 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold text-xs">
-                  05
-                </span>
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-200 text-amber-900">
-                  Red Mark Wrap
-                </span>
-              </div>
-              <h3 className="font-bold text-amber-950 text-sm">Sanitary & Diapers</h3>
-              <p className="text-xs text-amber-800 mt-1">
-                Menstrual pads, infant diapers, swabs. Wrapped in paper with red mark.
-              </p>
-              <div className="mt-3 p-2 bg-white/80 rounded-xl text-[11px] text-amber-900 border border-amber-200">
-                <strong>Destination:</strong> Municipal sanitary reject stream for high-temp incineration.
-              </div>
-            </div>
-            <button 
-              onClick={() => onNavigate('search', 'sanitary pads')}
-              className="mt-4 text-xs font-bold text-amber-800 hover:text-amber-950 flex items-center gap-1"
-            >
-              <span>Explore Sanitary</span>
-              <ArrowRight className="w-3 h-3" />
-            </button>
           </div>
         </div>
       </section>
 
-      {/* Popular Waste Items Quick Check */}
+      {/* 3. The Complete Circular Journey */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-6">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900">
-              Popular Indian Household Items
+        <div className="border border-[#E3E8EF] rounded-2xl bg-white p-6 sm:p-8 shadow-sm">
+          <div className="max-w-2xl mb-8">
+            <p className="text-xs font-bold text-[#138D81] uppercase tracking-wider">
+              End-to-End Circular Process
+            </p>
+            <h2 className="text-xl sm:text-2xl font-extrabold text-[#111C2E] mt-1">
+              From Discard to Circular Recovery
             </h2>
-            <p className="text-xs text-slate-600">
-              Everyday items that cause the most common sorting confusion.
+            <p className="text-xs sm:text-sm text-[#718096] mt-1.5">
+              PrithveX connects every touchpoint: Identify → Prepare → Donate / Sell → Channelize → Track Environmental Footprint.
             </p>
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+            <div className="border-l-2 border-[#111C2E] pl-3.5 space-y-1">
+              <p className="text-[11px] font-bold text-[#111C2E] font-mono">01. IDENTIFY</p>
+              <h3 className="font-bold text-xs text-[#111C2E]">Vision AI Scan</h3>
+              <p className="text-[11px] text-[#718096] leading-relaxed">
+                Detect resin polymer codes, hazardous markers, and bin color coding.
+              </p>
+            </div>
+
+            <div className="border-l-2 border-[#19B5A5] pl-3.5 space-y-1">
+              <p className="text-[11px] font-bold text-[#138D81] font-mono">02. PREPARE</p>
+              <h3 className="font-bold text-xs text-[#111C2E]">Rinse & Segregate</h3>
+              <p className="text-[11px] text-[#718096] leading-relaxed">
+                Follow statutory preparation checklist to avoid batch cross-contamination.
+              </p>
+            </div>
+
+            <div className="border-l-2 border-[#7667E8] pl-3.5 space-y-1">
+              <p className="text-[11px] font-bold text-[#5B4DE0] font-mono">03. REUSE / DONATE</p>
+              <h3 className="font-bold text-xs text-[#111C2E]">Circular Secondary Life</h3>
+              <p className="text-[11px] text-[#718096] leading-relaxed">
+                Donate wearable clothes & books to vetted NGOs like Goonj & SADS.
+              </p>
+            </div>
+
+            <div className="border-l-2 border-[#E8A84E] pl-3.5 space-y-1">
+              <p className="text-[11px] font-bold text-[#B87216] font-mono">04. SELL SCRAP</p>
+              <h3 className="font-bold text-xs text-[#111C2E]">Connect to Buyers</h3>
+              <p className="text-[11px] text-[#718096] leading-relaxed">
+                Check weekly scrap index rates and book doorstep pickup with certified scales.
+              </p>
+            </div>
+
+            <div className="border-l-2 border-[#0284C7] pl-3.5 space-y-1">
+              <p className="text-[11px] font-bold text-[#0369A1] font-mono">05. MAP ROUTING</p>
+              <h3 className="font-bold text-xs text-[#111C2E]">Circularity Map</h3>
+              <p className="text-[11px] text-[#718096] leading-relaxed">
+                Find authorized recyclers within 5-50km with turn-by-turn directions.
+              </p>
+            </div>
+
+            <div className="border-l-2 border-[#16A34A] pl-3.5 space-y-1">
+              <p className="text-[11px] font-bold text-[#15803D] font-mono">06. TRACK IMPACT</p>
+              <h3 className="font-bold text-xs text-[#111C2E]">Diversion Audit</h3>
+              <p className="text-[11px] text-[#718096] leading-relaxed">
+                Log sorted items to measure diverted weight (kg) and avoided CO2 footprint.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Platform Capabilities Grid */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <p className="text-xs font-bold text-[#718096] uppercase tracking-wider">
+            Enterprise & Citizen Tools
+          </p>
+          <h2 className="text-xl sm:text-2xl font-extrabold text-[#111C2E] mt-1">
+            Platform Capabilities & Services
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          {/* Card 1: Vision AI */}
+          <div 
+            onClick={() => onNavigate('identify')}
+            className="p-6 bg-white rounded-2xl border border-[#E3E8EF] hover:border-[#19B5A5] hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-[#F0EEFC] text-[#5B4DE0] flex items-center justify-center mb-4">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <h3 className="font-bold text-sm text-[#111C2E]">AI Waste Identifier</h3>
+              <p className="text-xs text-[#718096] mt-1.5 leading-relaxed">
+                Computer-vision analysis detecting resin codes, exact bin color, and safety handling instructions.
+              </p>
+            </div>
+            <span className="text-xs font-bold text-[#7667E8] mt-4 inline-flex items-center gap-1">
+              Launch Vision AI <ArrowRight className="w-3.5 h-3.5" />
+            </span>
+          </div>
+
+          {/* Card 2: Circularity Map */}
+          <div 
+            onClick={() => onNavigate('map')}
+            className="p-6 bg-white rounded-2xl border border-[#E3E8EF] hover:border-[#19B5A5] hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-[#E7F8F6] text-[#138D81] flex items-center justify-center mb-4">
+                <Compass className="w-5 h-5" />
+              </div>
+              <h3 className="font-bold text-sm text-[#111C2E]">Circularity Map</h3>
+              <p className="text-xs text-[#718096] mt-1.5 leading-relaxed">
+                Geo-referenced directory of recyclers, scrap dealers, e-waste drop-offs, and civic waste hotspots.
+              </p>
+            </div>
+            <span className="text-xs font-bold text-[#19B5A5] mt-4 inline-flex items-center gap-1">
+              Explore Map <ArrowRight className="w-3.5 h-3.5" />
+            </span>
+          </div>
+
+          {/* Card 3: Waste Buyers */}
+          <div 
+            onClick={() => onNavigate('buyers')}
+            className="p-6 bg-white rounded-2xl border border-[#E3E8EF] hover:border-[#E8A84E] hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-[#FEF6EC] text-[#B87216] flex items-center justify-center mb-4">
+                <Coins className="w-5 h-5" />
+              </div>
+              <h3 className="font-bold text-sm text-[#111C2E]">Commercial Waste Buyers</h3>
+              <p className="text-xs text-[#718096] mt-1.5 leading-relaxed">
+                Connect with bulk scrap aggregators, polymer recovery plants, and certified EPR partners.
+              </p>
+            </div>
+            <span className="text-xs font-bold text-[#B87216] mt-4 inline-flex items-center gap-1">
+              Explore Buyers <ArrowRight className="w-3.5 h-3.5" />
+            </span>
+          </div>
+
+          {/* Card 4: Marketplace */}
+          <div 
+            onClick={() => onNavigate('marketplace')}
+            className="p-6 bg-white rounded-2xl border border-[#E3E8EF] hover:border-[#19B5A5] hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-[#E7F8F6] text-[#138D81] flex items-center justify-center mb-4">
+                <Store className="w-5 h-5" />
+              </div>
+              <h3 className="font-bold text-sm text-[#111C2E]">P2P Waste Marketplace</h3>
+              <p className="text-xs text-[#718096] mt-1.5 leading-relaxed">
+                Buy and sell sorted PET, corrugated cardboard, metal lots, and electronics with direct negotiation.
+              </p>
+            </div>
+            <span className="text-xs font-bold text-[#19B5A5] mt-4 inline-flex items-center gap-1">
+              View Marketplace <ArrowRight className="w-3.5 h-3.5" />
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Frequently Looked-Up Household Items */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+          <div>
+            <p className="text-xs font-bold text-[#718096] uppercase tracking-wider">
+              Common Indian Household Items
+            </p>
+            <h2 className="text-xl sm:text-2xl font-extrabold text-[#111C2E] mt-1">
+              Frequently Segregated Materials
+            </h2>
+            <p className="text-xs sm:text-sm text-[#718096] mt-1">
+              Click any item to inspect its complete statutory disposal protocol.
+            </p>
+          </div>
+
           <button
             onClick={() => onNavigate('search')}
-            className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 group"
+            className="text-xs font-bold text-[#111C2E] hover:text-[#19B5A5] inline-flex items-center gap-1 self-start sm:self-auto"
           >
-            <span>View all 30+ items database</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            <span>Browse complete 30+ items catalog</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {popularItems.map((item) => (
-            <WasteCard 
-              key={item.id} 
-              item={item} 
-              onFindRecycler={() => onNavigate('recyclers')}
+            <WasteCard
+              key={item.id}
+              item={item}
+              onFindRecycler={(category) => onNavigate('recyclers', category)}
+              onFindBuyer={(category) => onNavigate('buyers', category)}
+              onGoMarketplace={() => onNavigate('marketplace')}
               onLogItem={onLogItem}
             />
           ))}
         </div>
       </section>
 
-      {/* How It Works (5-Step Framework) */}
-      <section className="bg-slate-900 text-white py-16 px-4 sm:px-6 lg:px-8 rounded-3xl max-w-7xl mx-auto">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-            Citizen Journey
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-black mt-1">
-            How PrithveX Transforms Waste Management
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-2">
-            A seamless 5-step loop designed for Indian households, housing societies, and college campuses.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-          <div className="p-4 bg-slate-800/80 rounded-2xl border border-slate-700/80 space-y-2">
-            <span className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 font-black text-xs flex items-center justify-center">
-              1
-            </span>
-            <h3 className="font-bold text-sm text-slate-100">Identify</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Upload a photo or search by name. Vision AI recognizes material, polymer type, and packaging style.
-            </p>
-          </div>
-
-          <div className="p-4 bg-slate-800/80 rounded-2xl border border-slate-700/80 space-y-2">
-            <span className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 font-black text-xs flex items-center justify-center">
-              2
-            </span>
-            <h3 className="font-bold text-sm text-slate-100">Segregate</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Match with the official bin stream (Green, Blue, Red, Grey) and follow rinse/dry preparation instructions.
-            </p>
-          </div>
-
-          <div className="p-4 bg-slate-800/80 rounded-2xl border border-slate-700/80 space-y-2">
-            <span className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 font-black text-xs flex items-center justify-center">
-              3
-            </span>
-            <h3 className="font-bold text-sm text-slate-100">Choose Route</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Assess whether the item can be Reused, Repaired, Donated, Composted, or Recycled before final binning.
-            </p>
-          </div>
-
-          <div className="p-4 bg-slate-800/80 rounded-2xl border border-slate-700/80 space-y-2">
-            <span className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 font-black text-xs flex items-center justify-center">
-              4
-            </span>
-            <h3 className="font-bold text-sm text-slate-100">Find Recycler</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Locate authorized CPCB recyclers, scrap collectors, and RUCO oil drop-off points in your city.
-            </p>
-          </div>
-
-          <div className="p-4 bg-slate-800/80 rounded-2xl border border-slate-700/80 space-y-2">
-            <span className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 font-black text-xs flex items-center justify-center">
-              5
-            </span>
-            <h3 className="font-bold text-sm text-slate-100">Track Impact</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Monitor your diverted kilograms, estimated CO2 avoided, and earn citizen sustainability badges.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Realistic Sustainability Statistics (Clearly labeled heuristic model) */}
+      {/* 6. Civic Action Callout: Waste Black-Spots */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-emerald-50/50 border border-emerald-100 rounded-3xl p-8 sm:p-10">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-                Data Grounding
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
-                The Scale of India's Waste Challenge
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-600 mt-1">
-                National estimates published by Central Pollution Control Board (CPCB) & Ministry of Housing & Urban Affairs (MoHUA).
-              </p>
+        <div className="border border-[#E3E8EF] rounded-2xl bg-white p-8 sm:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-sm">
+          <div className="max-w-2xl space-y-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#BE123C]">
+              <AlertTriangle className="w-4 h-4 text-[#E11D48]" />
+              <span>Civic Waste Grievance Reporting</span>
             </div>
-            <div className="text-[11px] text-slate-500 bg-white px-3 py-1.5 rounded-lg border border-slate-200">
-              Note: Sample metrics derived from CPCB Annual SWM reports (2021-2024).
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white p-5 rounded-2xl border border-emerald-100 shadow-xs">
-              <p className="text-3xl font-black text-slate-900">62 MT</p>
-              <p className="font-bold text-slate-800 text-xs mt-1">Annual Municipal Waste</p>
-              <p className="text-[11px] text-slate-500 mt-1">
-                Generated across Indian urban local bodies per year, growing at 5% annually.
-              </p>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-emerald-100 shadow-xs">
-              <p className="text-3xl font-black text-amber-600">~22%</p>
-              <p className="font-bold text-slate-800 text-xs mt-1">Segregation at Source</p>
-              <p className="text-[11px] text-slate-500 mt-1">
-                Current household sorting rate; 78% still reaches transit yards mixed and contaminated.
-              </p>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-emerald-100 shadow-xs">
-              <p className="text-3xl font-black text-emerald-700">70%</p>
-              <p className="font-bold text-slate-800 text-xs mt-1">Potential Landfill Diversion</p>
-              <p className="text-[11px] text-slate-500 mt-1">
-                Achievable if wet waste is composted and clean dry plastics reach registered MRFs.
-              </p>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-emerald-100 shadow-xs">
-              <p className="text-3xl font-black text-teal-700">1.4 kg</p>
-              <p className="font-bold text-slate-800 text-xs mt-1">CO₂e Avoided per kg Recycled</p>
-              <p className="text-[11px] text-slate-500 mt-1">
-                Conservative greenhouse gas emission reduction benchmark for dry recyclable paper and polymers.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Community Action Banner */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-r from-emerald-800 to-teal-900 text-white rounded-3xl p-8 sm:p-12 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
-          <div className="space-y-2 max-w-xl">
-            <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
-              Collective Civic Responsibility
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-white">
-              Spotted illegal garbage dumping or an overflowing bin in your ward?
+            <h2 className="text-xl sm:text-2xl font-extrabold text-[#111C2E]">
+              Spotted an Illegal Garbage Black-Spot in Your Locality?
             </h2>
-            <p className="text-xs sm:text-sm text-emerald-100/90 leading-relaxed">
-              Report the issue directly through PrithveX with photos and location. Track the municipal review status transparently.
+            <p className="text-xs sm:text-sm text-[#718096] leading-relaxed">
+              Capture photo evidence, pin exact GPS coordinates on the Circularity Map, and submit a municipal complaint ticket. Track progress from Submitted → Under Review → Assigned → Resolved.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 shrink-0">
-            <button
-              onClick={() => onNavigate('report')}
-              className="px-6 py-3.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2"
-            >
-              <AlertTriangle className="w-4 h-4" />
-              <span>Report Waste Dumping</span>
-            </button>
-            <button
-              onClick={() => onNavigate('community')}
-              className="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-semibold rounded-2xl text-xs sm:text-sm transition-all flex items-center justify-center gap-2"
-            >
-              <span>Explore Community Wall</span>
-            </button>
-          </div>
+
+          <button
+            onClick={() => onNavigate('report')}
+            className="px-5 py-3 bg-[#111C2E] hover:bg-[#253247] text-white font-bold rounded-xl text-xs shrink-0 transition-colors inline-flex items-center gap-2 shadow-sm"
+          >
+            <span>Report Waste Hotspot</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
         </div>
       </section>
     </div>

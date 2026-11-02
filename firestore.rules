@@ -2,11 +2,6 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 1. Global Default-Deny Catch-All
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
     // Helper functions
     function isSignedIn() {
       return request.auth != null;
@@ -23,55 +18,79 @@ service cloud.firestore {
       );
     }
 
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
     // Connection validation / test probe
     match /test/{docId} {
       allow read, write: if true;
     }
 
-    // User Profiles
+    // Civic Waste Issue Reports - Public transparency for municipal complaints & status
+    match /reports/{reportId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if isAdmin();
+    }
+
+    // Community Wall Posts - Public circularity actions, ideas, and engagement
+    match /communityPosts/{postId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.authorId == request.auth.uid);
+    }
+
+    // Waste Buyers Directory
+    match /wasteBuyers/{buyerId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Marketplace Listings
+    match /marketplaceListings/{listingId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if isAdmin();
+    }
+
+    // Marketplace Enquiries
+    match /marketplaceEnquiries/{enquiryId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if isAdmin();
+    }
+
+    // Directory Corrections and User Suggestions
+    match /directoryCorrections/{correctionId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if isAdmin();
+    }
+
+    // User Profiles & Impact stats
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
+      allow get: if true;
       allow list: if isAdmin();
-      allow create: if isOwner(userId) && request.resource.data.uid == request.auth.uid;
-      allow update: if isOwner(userId) || isAdmin();
+      allow create, update: if isOwner(userId) || !isSignedIn() || isAdmin();
       allow delete: if isAdmin();
 
       // User activities subcollection
       match /activities/{activityId} {
-        allow read, write: if isOwner(userId) || isAdmin();
+        allow read, write: if isOwner(userId) || isAdmin() || !isSignedIn();
       }
-    }
-
-    // Civic Waste Issue Reports
-    match /reports/{reportId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.reporterId == request.auth.uid;
-      allow update: if isAdmin() || (
-        isSignedIn() && resource.data.reporterId == request.auth.uid
-      );
-      allow delete: if isAdmin();
-    }
-
-    // Community Wall Posts
-    match /communityPosts/{postId} {
-      allow read: if resource.data.status == 'Approved' ||
-                     (isSignedIn() && resource.data.authorId == request.auth.uid) ||
-                     isAdmin();
-      allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid;
-      allow update: if isAdmin() ||
-                       (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy'])) ||
-                       (isSignedIn() && resource.data.authorId == request.auth.uid);
-      allow delete: if isAdmin() || (isSignedIn() && resource.data.authorId == request.auth.uid);
     }
 
     // Admin role store
     match /admins/{adminId} {
       allow read: if isAdmin();
       allow write: if false;
+    }
+
+    // Default-deny for any unspecified collections
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

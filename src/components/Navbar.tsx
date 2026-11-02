@@ -1,18 +1,12 @@
 import React, { useState } from 'react';
 import { 
   Sparkles, 
-  Recycle, 
-  Search, 
-  MapPin, 
-  BookOpen, 
-  Users, 
-  LayoutDashboard, 
-  Info, 
   Menu, 
   X, 
   ShieldAlert, 
-  UserCircle2, 
-  AlertCircle
+  User, 
+  Compass,
+  MapPin
 } from 'lucide-react';
 import { UserProfile } from '../types';
 
@@ -38,14 +32,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { id: 'home', label: 'Home', icon: Recycle },
-    { id: 'identify', label: 'Identify Waste', icon: Sparkles, highlight: true },
-    { id: 'search', label: 'What Should I Do?', icon: Search },
-    { id: 'recyclers', label: 'Find Recyclers', icon: MapPin },
-    { id: 'learn', label: 'Learn', icon: BookOpen },
-    { id: 'community', label: 'Community', icon: Users },
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'about', label: 'About', icon: Info },
+    { id: 'home', label: 'Overview' },
+    { id: 'map', label: 'Circularity Map', highlight: true },
+    { id: 'search', label: 'Waste Database' },
+    { id: 'recyclers', label: 'Recyclers' },
+    { id: 'buyers', label: 'Waste Buyers' },
+    { id: 'marketplace', label: 'Marketplace' },
+    { id: 'report', label: 'Civic Grievance' },
+    { id: 'community', label: 'Community' },
+    { id: 'learn', label: 'Guides' },
+    { id: 'dashboard', label: 'Impact' },
   ];
 
   const handleNavClick = (id: string) => {
@@ -54,214 +50,191 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-emerald-100 shadow-xs">
-      {/* Top micro banner for Indian SWM awareness */}
-      <div className="bg-emerald-950 text-emerald-100 text-xs py-1.5 px-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="font-medium text-emerald-200">Swachh Bharat & SWM Rules 2016 Compliant</span>
-            <span className="hidden md:inline text-emerald-400/80">| Responsible Waste Segregation Platform for India</span>
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E3E8EF]">
+      {/* Top Utility Bar: Operational context & compliance */}
+      <div className="bg-[#111C2E] text-[#E3E8EF] text-xs py-1.5 px-4 border-b border-[#253247]">
+        <div className="max-w-7xl mx-auto flex items-center justify-between text-[11px]">
+          <div className="flex items-center gap-3">
+            <span className="text-white font-semibold tracking-tight">CPCB & SWM Rules Compliant</span>
+            <span aria-hidden="true" className="text-[#718096]">·</span>
+            <span className="hidden sm:inline text-[#E3E8EF]">Better Waste Decisions. Sustainable Action.</span>
           </div>
 
-          <div className="flex items-center gap-4 text-xs">
-            {/* AI API Status pill */}
-            <div className="flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${hasGeminiKey ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
-              <span className="text-emerald-200/90 hidden sm:inline">AI Engine:</span>
-              <span className={`font-mono px-1.5 py-0.2 rounded text-[11px] ${
-                hasGeminiKey ? 'bg-emerald-800 text-emerald-100' : 'bg-amber-900/80 text-amber-200'
-              }`}>
-                {hasGeminiKey ? 'Gemini 3.8 Flash' : 'Demo Classifier Mode'}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 font-mono">
+              <span className={`w-1.5 h-1.5 rounded-full ${hasGeminiKey ? 'bg-[#19B5A5]' : 'bg-[#E8A84E]'}`} />
+              <span className="text-[#718096] text-[10px] hidden md:inline">Classifier:</span>
+              <span className="text-[#E3E8EF] text-[10px]">
+                {hasGeminiKey ? 'Gemini 3.8 Flash' : 'Rule Engine'}
               </span>
             </div>
 
-            {/* Admin portal toggle */}
+            <span aria-hidden="true" className="text-[#253247]">|</span>
+
             <button
               onClick={onToggleAdmin}
-              className={`flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
+              className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-sans font-medium transition-colors ${
                 isAdmin 
-                  ? 'bg-amber-500 text-slate-950 font-bold' 
-                  : 'bg-emerald-900/60 text-emerald-200 hover:bg-emerald-800'
+                  ? 'bg-[#E8A84E] text-[#111C2E] font-bold' 
+                  : 'text-[#E3E8EF] hover:text-white hover:bg-white/10'
               }`}
-              title="Toggle Hackathon Admin/Moderator Review Portal"
+              title="Toggle Hackathon Admin / Zonal Officer Portal"
             >
               <ShieldAlert className="w-3 h-3" />
-              <span>{isAdmin ? 'Admin View Active' : 'Judge / Admin'}</span>
+              <span>{isAdmin ? 'Admin Portal Active' : 'Judge / Officer'}</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Main navigation row */}
+      {/* Main Navigation Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Brand Logo */}
+          {/* Brand Zone */}
           <div 
             onClick={() => handleNavClick('home')}
-            className="flex items-center gap-2.5 cursor-pointer group"
+            className="flex items-center gap-2.5 cursor-pointer select-none group"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-emerald-700 to-teal-800 flex items-center justify-center text-white shadow-md shadow-emerald-700/20 group-hover:scale-105 transition-transform">
-              <Recycle className="w-6 h-6 text-emerald-100" />
+            <div className="w-8 h-8 rounded-lg bg-[#111C2E] text-white flex items-center justify-center font-black text-sm tracking-tight group-hover:bg-[#253247] transition-colors shadow-sm">
+              P
             </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xl font-black tracking-tight text-slate-900">
-                  Prithve<span className="text-emerald-600">X</span>
-                </span>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
-                  INDIA
-                </span>
-              </div>
-              <span className="text-[11px] font-medium text-slate-500 -mt-0.5">
-                Segregate • Recycle • Restore
+            <div>
+              <span className="text-lg font-extrabold tracking-tight text-[#111C2E]">
+                Prithve<span className="text-[#19B5A5]">X</span>
               </span>
             </div>
           </div>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1">
+          {/* Nav Links Zone (Desktop) */}
+          <nav className="hidden xl:flex items-center gap-4 2xl:gap-5">
             {navItems.map((item) => {
-              const Icon = item.icon;
               const isActive = currentTab === item.id;
-              
-              if (item.highlight) {
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleNavClick(item.id)}
-                    className={`ml-2 px-3.5 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 shadow-xs transition-all ${
-                      isActive
-                        ? 'bg-emerald-700 text-white shadow-emerald-700/25 ring-2 ring-emerald-600/30'
-                        : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:shadow-sm border border-emerald-200/80'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 text-emerald-600 animate-pulse" />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              }
-
               return (
                 <button
                   key={item.id}
                   onClick={() => handleNavClick(item.id)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
-                    isActive
-                      ? 'text-emerald-700 bg-emerald-50/80 font-semibold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  className={`text-xs tracking-tight transition-colors py-1 relative flex items-center gap-1 ${
+                    isActive 
+                      ? 'text-[#111C2E] font-bold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#111C2E]' 
+                      : item.highlight
+                      ? 'text-[#19B5A5] font-bold hover:text-[#138D81]'
+                      : 'text-[#718096] font-semibold hover:text-[#111C2E]'
                   }`}
                 >
-                  <Icon className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
+                  {item.highlight && <Compass className="w-3.5 h-3.5 text-[#19B5A5]" />}
                   <span>{item.label}</span>
                 </button>
               );
             })}
           </nav>
 
-          {/* Right Side: Quick Action & User Auth */}
+          {/* Action Zone */}
           <div className="hidden sm:flex items-center gap-2.5">
+            {/* Map Shortcut button for tablets */}
             <button
-              onClick={() => handleNavClick('report')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
-                currentTab === 'report'
-                  ? 'bg-rose-50 text-rose-700 border-rose-300'
-                  : 'text-rose-700 border-rose-200 bg-rose-50/50 hover:bg-rose-100/70'
+              onClick={() => handleNavClick('map')}
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all flex items-center gap-1.5 ${
+                currentTab === 'map'
+                  ? 'bg-[#111C2E] text-white border-[#111C2E]'
+                  : 'bg-white border-[#E3E8EF] text-[#253247] hover:border-[#19B5A5] hover:text-[#19B5A5]'
               }`}
             >
-              Report Issue
+              <Compass className="w-3.5 h-3.5 text-[#19B5A5]" />
+              <span>Circularity Map</span>
             </button>
 
+            {/* Primary Action Button: Identify Waste */}
+            <button
+              onClick={() => handleNavClick('identify')}
+              className={`px-3.5 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all shadow-sm ${
+                currentTab === 'identify'
+                  ? 'bg-[#111C2E] text-white'
+                  : 'bg-[#19B5A5] hover:bg-[#138D81] text-white'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Identify Waste</span>
+            </button>
+
+            {/* User Account / Auth Trigger */}
             <button
               onClick={onOpenAuth}
-              className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 text-slate-700 bg-slate-50/50 hover:bg-white text-xs font-medium transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E3E8EF] text-xs font-semibold text-[#253247] hover:border-[#111C2E] transition-colors"
             >
-              <UserCircle2 className="w-4 h-4 text-emerald-600" />
-              <span className="max-w-[100px] truncate">{user.isLoggedIn ? user.name : 'Sign In'}</span>
+              <User className="w-3.5 h-3.5 text-[#718096]" />
+              <span>{user.isLoggedIn ? user.name.split(' ')[0] : 'Sign In'}</span>
             </button>
           </div>
 
-          {/* Mobile Menu Hamburger */}
-          <div className="lg:hidden flex items-center gap-2">
+          {/* Mobile Menu Button */}
+          <div className="flex lg:hidden items-center gap-2">
+            <button
+              onClick={() => handleNavClick('map')}
+              className="p-1.5 rounded-lg bg-[#E7F8F6] text-[#138D81] border border-[#19B5A5]"
+              title="Circularity Map"
+            >
+              <Compass className="w-4 h-4" />
+            </button>
             <button
               onClick={() => handleNavClick('identify')}
-              className="p-2 rounded-lg bg-emerald-50 text-emerald-700"
-              title="Identify Waste"
+              className="px-2.5 py-1.5 text-xs font-bold rounded-lg bg-[#19B5A5] text-white"
             >
-              <Sparkles className="w-5 h-5" />
+              Identify
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-              aria-label="Toggle menu"
+              className="p-2 rounded-lg text-[#253247] hover:text-[#111C2E] hover:bg-[#F4F6F8]"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-slate-100 bg-white px-4 pt-3 pb-6 space-y-1 shadow-lg animate-in slide-in-from-top duration-200">
-          <div className="pb-2 border-b border-slate-100 mb-2 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <UserCircle2 className="w-5 h-5 text-emerald-600" />
-              <div className="text-xs">
-                <p className="font-semibold text-slate-800">{user.isLoggedIn ? user.name : 'Guest User'}</p>
-                <p className="text-slate-500 text-[10px]">{user.city || 'India'}</p>
-              </div>
-            </div>
+        <div className="lg:hidden border-t border-[#E3E8EF] bg-white px-4 py-3 space-y-1">
+          {navItems.map((item) => (
             <button
-              onClick={onOpenAuth}
-              className="text-xs text-emerald-700 font-semibold underline"
+              key={item.id}
+              onClick={() => handleNavClick(item.id)}
+              className={`w-full text-left px-3 py-2 text-xs font-semibold rounded-lg flex items-center justify-between ${
+                currentTab === item.id 
+                  ? 'bg-[#111C2E] text-white' 
+                  : item.highlight
+                  ? 'bg-[#E7F8F6] text-[#138D81]'
+                  : 'text-[#253247] hover:bg-[#F4F6F8]'
+              }`}
             >
-              {user.isLoggedIn ? 'Manage Account' : 'Sign In'}
+              <span className="flex items-center gap-2">
+                {item.highlight && <Compass className="w-3.5 h-3.5 text-[#19B5A5]" />}
+                {item.label}
+              </span>
+              {item.highlight && (
+                <span className="text-[10px] bg-[#19B5A5] text-white px-2 py-0.5 rounded-full font-bold">
+                  New
+                </span>
+              )}
             </button>
-          </div>
-
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleNavClick(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-emerald-600 text-white font-semibold'
-                    : 'text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                <span>{item.label}</span>
-                {item.highlight && !isActive && (
-                  <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
-                    AI
-                  </span>
-                )}
-              </button>
-            );
-          })}
-
-          <div className="pt-2 border-t border-slate-100 mt-2 space-y-1">
+          ))}
+          <div className="pt-2 border-t border-[#E3E8EF] flex items-center justify-between">
             <button
-              onClick={() => handleNavClick('report')}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-rose-700 bg-rose-50"
+              onClick={() => {
+                onOpenAuth();
+                setMobileMenuOpen(false);
+              }}
+              className="text-xs font-bold text-[#253247] px-3 py-2 hover:underline"
             >
-              <AlertCircle className="w-5 h-5 text-rose-600" />
-              <span>Report Waste Dumping Issue</span>
+              {user.isLoggedIn ? `Account (${user.name})` : 'Citizen Sign In'}
             </button>
-
             <button
               onClick={() => {
                 onToggleAdmin();
                 setMobileMenuOpen(false);
               }}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-amber-800 bg-amber-50"
+              className="text-xs text-[#E8A84E] font-bold px-3 py-2"
             >
-              <ShieldAlert className="w-4 h-4 text-amber-700" />
-              <span>{isAdmin ? 'Exit Admin View' : 'Open Admin / Moderator View'}</span>
+              {isAdmin ? 'Exit Admin' : 'Admin Portal'}
             </button>
           </div>
         </div>

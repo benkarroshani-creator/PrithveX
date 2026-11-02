@@ -34,6 +34,10 @@ export async function getOrCreateUserProfile(fbUser: FirebaseUser): Promise<User
         stats: data.stats || INITIAL_USER_PROFILE.stats,
         badges: data.badges || INITIAL_USER_PROFILE.badges,
         recentActivity: data.recentActivity || INITIAL_USER_PROFILE.recentActivity,
+        savedRecyclerIds: data.savedRecyclerIds || [],
+        savedBuyerIds: data.savedBuyerIds || [],
+        savedListingIds: data.savedListingIds || [],
+        bookmarkedGuideIds: data.bookmarkedGuideIds || [],
       };
     } else {
       // First-time signup: Create initial document in Firestore
@@ -47,6 +51,10 @@ export async function getOrCreateUserProfile(fbUser: FirebaseUser): Promise<User
         stats: INITIAL_USER_PROFILE.stats,
         badges: INITIAL_USER_PROFILE.badges,
         recentActivity: INITIAL_USER_PROFILE.recentActivity,
+        savedRecyclerIds: [],
+        savedBuyerIds: [],
+        savedListingIds: [],
+        bookmarkedGuideIds: [],
       };
 
       await setDoc(userRef, {
@@ -58,6 +66,10 @@ export async function getOrCreateUserProfile(fbUser: FirebaseUser): Promise<User
         role: 'citizen',
         stats: newProfile.stats,
         badges: newProfile.badges,
+        savedRecyclerIds: [],
+        savedBuyerIds: [],
+        savedListingIds: [],
+        bookmarkedGuideIds: [],
         recentActivity: newProfile.recentActivity,
       });
 

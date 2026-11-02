@@ -1,5 +1,6 @@
 /**
  * PrithveX - Intelligent Waste Segregation & Circular Disposal Platform
+ * "Better Waste Decisions. Sustainable Action."
  * @license Apache-2.0
  */
 
@@ -13,12 +14,15 @@ import { HomePage } from './pages/HomePage';
 import { IdentifyPage } from './pages/IdentifyPage';
 import { WhatToDoPage } from './pages/WhatToDoPage';
 import { RecyclersPage } from './pages/RecyclersPage';
+import { BuyersPage } from './pages/BuyersPage';
+import { MarketplacePage } from './pages/MarketplacePage';
 import { LearnPage } from './pages/LearnPage';
 import { CommunityPage } from './pages/CommunityPage';
 import { ReportIssuePage } from './pages/ReportIssuePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { AdminPage } from './pages/AdminPage';
 import { AboutPage } from './pages/AboutPage';
+import { CircularityMapPage } from './pages/CircularityMapPage';
 
 import { checkAiHealth } from './services/aiClassifier';
 import { 
@@ -28,10 +32,10 @@ import {
   incrementUserStat, 
   recordUserActivity,
   subscribeToCommunityPosts,
-  subscribeToReports
+  subscribeToReports,
+  subscribeToUserProfile
 } from './services/storageService';
 import { subscribeToAuth } from './services/authService';
-import { INITIAL_USER_PROFILE } from './data/mockData';
 import { ClassificationResult, CommunityPost, ReportIssue, UserProfile, WasteItem } from './types';
 
 export default function App() {
@@ -104,14 +108,14 @@ export default function App() {
     if (tab === 'search' && filter) {
       setSearchParam(filter);
     }
-    if (tab === 'recyclers' && filter) {
+    if ((tab === 'recyclers' || tab === 'buyers') && filter) {
       setCategoryFilterParam(filter);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleLogItem = (item: WasteItem) => {
-    incrementUserStat('itemsIdentified', 1);
+    incrementUserStat('itemsSegregated', 1);
     recordUserActivity(`Segregated ${item.name}`, `Placed in ${item.binName} for ${item.primaryPathway}`);
     setCurrentUser(getUserProfile());
     showToast(`Logged "${item.name}" to your diversion dashboard (+0.35kg diverted)!`, 'success');
@@ -132,7 +136,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans antialiased selection:bg-emerald-200 selection:text-emerald-950">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans antialiased selection:bg-slate-900 selection:text-white">
       {/* Top Navbar */}
       <Navbar
         currentTab={currentTab}
@@ -162,6 +166,16 @@ export default function App() {
           />
         )}
 
+        {currentTab === 'map' && (
+          <CircularityMapPage
+            reports={reports}
+            currentUser={currentUser}
+            onNavigate={handleNavigate}
+            onShowToast={showToast}
+            initialCategory={categoryFilterParam !== 'all' ? categoryFilterParam : undefined}
+          />
+        )}
+
         {currentTab === 'identify' && (
           <IdentifyPage
             onNavigate={handleNavigate}
@@ -185,6 +199,14 @@ export default function App() {
             onNavigate={handleNavigate}
             onShowToast={showToast}
           />
+        )}
+
+        {currentTab === 'buyers' && (
+          <BuyersPage onNavigate={handleNavigate} />
+        )}
+
+        {currentTab === 'marketplace' && (
+          <MarketplacePage onNavigate={handleNavigate} />
         )}
 
         {currentTab === 'learn' && (

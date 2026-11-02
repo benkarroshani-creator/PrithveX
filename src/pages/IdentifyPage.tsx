@@ -2,22 +2,27 @@ import React, { useState, useRef } from 'react';
 import { 
   Sparkles, 
   Upload, 
-  Image as ImageIcon, 
+  ImageIcon, 
   CheckCircle2, 
   AlertTriangle, 
   ArrowRight, 
   RefreshCw, 
   ShieldCheck, 
-  ExternalLink, 
-  Info,
   Camera,
   Trash2,
   BookmarkCheck,
-  Zap
+  Zap,
+  Building2,
+  Coins,
+  Store,
+  HelpCircle,
+  ThumbsUp,
+  SlidersHorizontal
 } from 'lucide-react';
 import { classifyWaste } from '../services/aiClassifier';
-import { ClassificationResult, WasteItem } from '../types';
+import { ClassificationResult } from '../types';
 import { SAMPLE_PRESET_ITEMS } from '../data/mockData';
+import { incrementUserStat, recordUserActivity } from '../services/storageService';
 
 interface IdentifyPageProps {
   onNavigate: (tab: string, filter?: string) => void;
@@ -41,6 +46,10 @@ export const IdentifyPage: React.FC<IdentifyPageProps> = ({
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const [isLogged, setIsLogged] = useState<boolean>(false);
   const [useForceDemo, setUseForceDemo] = useState<boolean>(false);
+  
+  // Ambiguity / Low-confidence override state
+  const [clarificationText, setClarificationText] = useState<string>('');
+  const [userConfirmedLowConfidence, setUserConfirmedLowConfidence] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -62,6 +71,7 @@ export const IdentifyPage: React.FC<IdentifyPageProps> = ({
       setSelectedImage(result);
       setClassification(null);
       setIsLogged(false);
+      setUserConfirmedLowConfidence(false);
     };
     reader.readAsDataURL(file);
   };
@@ -77,17 +87,17 @@ export const IdentifyPage: React.FC<IdentifyPageProps> = ({
   const handleRunClassification = async (hintOverride?: string) => {
     const hint = hintOverride !== undefined ? hintOverride : itemHint;
     if (!selectedImage && !hint.trim()) {
-      onShowToast('Please upload an image or type an item name hint.', 'info');
+      onShowToast('Please upload an image or enter an item hint.', 'info');
       return;
     }
 
     setIsLoading(true);
-    setLoadingStep('Analyzing material texture and visual signature...');
+    setLoadingStep('Analyzing material composition and texture...');
 
     try {
       setTimeout(() => {
-        setLoadingStep('Consulting CPCB Indian Solid Waste Management (SWM 2016) protocols...');
-      }, 700);
+        setLoadingStep('Matching against CPCB Solid Waste Management (SWM 2016) protocols...');
+      }, 600);
 
       const result = await classifyWaste({
         imageBase64: selectedImage || undefined,
@@ -98,9 +108,11 @@ export const IdentifyPage: React.FC<IdentifyPageProps> = ({
 
       setClassification(result);
       setIsLogged(false);
-      onShowToast(`Identified as ${result.itemName}!`, 'success');
-    } catch (err: any) {
-      onShowToast('Classification encountered an issue. Falling back to local rules.', 'info');
+      setUserConfirmedLowConfidence(false);
+      onShowToast(`Identified: ${result.itemName}`, 'success');
+    } catch (err) {
+      console.error('Classification failure:', err);
+      onShowToast('Classification failed. Falling back to deterministic rules.', 'info');
     } finally {
       setIsLoading(false);
       setLoadingStep('');
@@ -108,9 +120,10 @@ export const IdentifyPage: React.FC<IdentifyPageProps> = ({
   };
 
   const handleSelectPreset = (preset: typeof SAMPLE_PRESET_ITEMS[0]) => {
-    setItemHint(preset.hint);
+    setItemHint(preset.label);
     setSelectedImage(null);
-    handleRunClassification(preset.hint);
+    setUserConfirmedLowConfidence(false);
+    handleRunClassification(preset.label);
   };
 
   const handleReset = () => {
@@ -118,122 +131,98 @@ export const IdentifyPage: React.FC<IdentifyPageProps> = ({
     setItemHint('');
     setClassification(null);
     setIsLogged(false);
+    setUserConfirmedLowConfidence(false);
+    setClarificationText('');
   };
 
-  const handleLogToDashboard = () => {
-    if (classification && !isLogged) {
-      onLogClassification(classification);
-      setIsLogged(true);
-      onShowToast('Saved to your citizen impact dashboard (+0.35 kg diverted)!', 'success');
+  const handleLogToDashboard = (actionType: 'segregated' | 'reused' | 'donated' | 'sold' = 'segregated') => {
+    if (!classification) return;
+    onLogClassification(classification);
+    
+    if (actionType === 'reused') {
+      incrementUserStat('itemsReused', 1);
+      recordUserActivity('Reused Household Item', classification.itemName);
+    } else if (actionType === 'donated') {
+      incrementUserStat('itemsDonated', 1);
+      recordUserActivity('Donated Useful Item', classification.itemName);
+    } else if (actionType === 'sold') {
+      incrementUserStat('itemsSold', 1);
+      recordUserActivity('Sold Recyclable Scrap', classification.itemName);
+    } else {
+      incrementUserStat('itemsSegregated', 1);
+      recordUserActivity('Segregated Waste Item', classification.itemName);
     }
+
+    setIsLogged(true);
+    onShowToast(`Logged "${classification.itemName}" as ${actionType}!`, 'success');
   };
 
-  // Bin color badge styling
-  const getBinBadge = (binColor: string) => {
+  const getBinMeta = (binColor: string) => {
     switch (binColor) {
       case 'green':
         return {
-          bg: 'bg-emerald-500 text-white',
-          border: 'border-emerald-600',
-          container: 'bg-emerald-50 border-emerald-200 text-emerald-950',
-          label: 'Green Bin (Wet / Organic Stream)',
+          dot: 'bg-emerald-600',
+          borderColor: 'border-emerald-300',
+          label: 'Green Bin (Wet / Organic)',
         };
       case 'blue':
         return {
-          bg: 'bg-blue-600 text-white',
-          border: 'border-blue-700',
-          container: 'bg-blue-50 border-blue-200 text-blue-950',
-          label: 'Blue Bin (Dry Recyclable Stream)',
+          dot: 'bg-blue-600',
+          borderColor: 'border-blue-300',
+          label: 'Blue Bin (Dry Recyclable)',
         };
       case 'red':
         return {
-          bg: 'bg-rose-600 text-white',
-          border: 'border-rose-700',
-          container: 'bg-rose-50 border-rose-200 text-rose-950',
-          label: 'Red Bin / Marked Wrap (Hazardous / Sanitary)',
-        };
-      case 'black':
-        return {
-          bg: 'bg-slate-800 text-white',
-          border: 'border-slate-900',
-          container: 'bg-slate-100 border-slate-300 text-slate-900',
-          label: 'Black Bin (Reject / Residual Stream)',
+          dot: 'bg-rose-600',
+          borderColor: 'border-rose-300',
+          label: 'Red Bin (Domestic Hazardous / Sanitary)',
         };
       default:
         return {
-          bg: 'bg-purple-600 text-white',
-          border: 'border-purple-700',
-          container: 'bg-purple-50 border-purple-200 text-purple-950',
-          label: 'Special Collection Stream (CPCB Hub)',
+          dot: 'bg-slate-700',
+          borderColor: 'border-slate-300',
+          label: 'Black Bin (Residual / Non-recyclable)',
         };
     }
   };
 
-  return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
-      {/* Header */}
-      <div className="text-center max-w-2xl mx-auto space-y-2">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200">
-          <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Multimodal Waste Intelligence</span>
-        </div>
-        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-          Identify Waste & Sorting Pathway
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-600">
-          Upload an image, snap a photo, or enter an item name. Our AI classifies the material, prescribes the exact Indian municipal bin color, and provides safe preparation instructions.
-        </p>
+  const isLowConfidence = classification && classification.confidence < 0.72;
 
-        {/* Engine switcher toggle for hackathon demonstration */}
-        <div className="pt-2 flex items-center justify-center gap-3 text-xs">
-          <span className="text-slate-500 font-medium">Classification Provider:</span>
-          <div className="inline-flex rounded-xl p-0.5 bg-slate-200/80 border border-slate-300">
-            <button
-              onClick={() => setUseForceDemo(false)}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                !useForceDemo && hasGeminiKey
-                  ? 'bg-emerald-700 text-white shadow-xs'
-                  : 'text-slate-700 hover:text-slate-900'
-              }`}
-            >
-              Gemini 3.8 Flash {hasGeminiKey ? '● Active' : '(No Key)'}
-            </button>
-            <button
-              onClick={() => setUseForceDemo(true)}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                useForceDemo || !hasGeminiKey
-                  ? 'bg-amber-600 text-white shadow-xs'
-                  : 'text-slate-700 hover:text-slate-900'
-              }`}
-            >
-              Demo / Offline Engine
-            </button>
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      {/* Header */}
+      <div className="border-b border-slate-200 pb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium mb-1">
+            <span>Intelligent Waste Recognition</span>
+            <span aria-hidden="true" className="text-slate-300">·</span>
+            <span>Gemini Vision & CPCB Rule Engine</span>
           </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+            AI Waste Identifier & Disposal Navigator
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl leading-relaxed">
+            Upload an image of any discarded item or type a material description. Receive the exact municipal bin destination, citizen preparation steps, statutory CPCB rules, and direct recycler/buyer matches.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <span className="text-[11px] font-mono text-slate-500">
+            {hasGeminiKey ? 'Gemini 3.8 Flash Active' : 'Deterministic Rules'}
+          </span>
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
         </div>
       </div>
 
-      {/* Main Input Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Col: Upload & Manual Input (5 cols) */}
+        {/* Left Column: Input Panel (5 cols) */}
         <div className="lg:col-span-5 space-y-5">
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-5">
-            <div className="flex items-center justify-between">
-              <h2 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 text-emerald-600" />
-                <span>Upload Item Image</span>
-              </h2>
-              {selectedImage && (
-                <button
-                  onClick={() => setSelectedImage(null)}
-                  className="text-xs text-rose-600 hover:underline flex items-center gap-1 font-medium"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Remove Image</span>
-                </button>
-              )}
-            </div>
+          <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-2xs space-y-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-800">
+              Input Material
+            </h3>
 
-            {/* Drop Zone */}
+            {/* Dropzone */}
             <div
               onDragOver={(e) => {
                 e.preventDefault();
@@ -242,125 +231,96 @@ export const IdentifyPage: React.FC<IdentifyPageProps> = ({
               onDragLeave={() => setIsDragOver(false)}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 text-center transition-all flex flex-col items-center justify-center min-h-[200px] ${
+              className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
                 isDragOver
-                  ? 'border-emerald-500 bg-emerald-50/50'
+                  ? 'border-teal-500 bg-teal-50/40'
                   : selectedImage
-                  ? 'border-emerald-300 bg-slate-50'
-                  : 'border-slate-300 hover:border-emerald-400 hover:bg-slate-50'
+                  ? 'border-slate-300 bg-slate-50/50'
+                  : 'border-slate-300 hover:border-slate-400 bg-slate-50/20'
               }`}
             >
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                className="hidden"
                 onChange={(e) => {
                   if (e.target.files && e.target.files[0]) {
                     handleFileChange(e.target.files[0]);
                   }
                 }}
+                className="hidden"
               />
 
               {selectedImage ? (
-                <div className="relative group w-full flex flex-col items-center">
-                  <img
-                    src={selectedImage}
-                    alt="Uploaded waste item"
-                    className="max-h-48 object-contain rounded-xl shadow-xs"
-                  />
-                  <p className="text-[11px] text-slate-500 mt-2 font-medium">
-                    Click or drop another image to replace
+                <div className="space-y-3">
+                  <div className="relative inline-block max-w-full">
+                    <img
+                      src={selectedImage}
+                      alt="Uploaded preview"
+                      className="max-h-52 rounded-lg object-contain mx-auto border border-slate-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedImage(null);
+                        setClassification(null);
+                      }}
+                      className="absolute -top-2 -right-2 p-1 rounded-full bg-rose-600 text-white shadow-xs hover:bg-rose-700 transition-colors"
+                      title="Remove image"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    Click or drag to swap photo
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center mx-auto">
-                    <Upload className="w-6 h-6" />
+                <div className="space-y-2 py-4">
+                  <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center mx-auto">
+                    <Camera className="w-5 h-5" />
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-800">
-                      Drag & drop waste photo here
-                    </p>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      or browse from phone/computer (JPG, PNG, WEBP)
-                    </p>
+                  <div className="text-xs text-slate-700">
+                    <span className="font-semibold text-slate-900">Click to upload</span> or drag image here
                   </div>
-                  <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold">
-                    <Camera className="w-3 h-3" />
-                    <span>Camera Supported</span>
-                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    PNG, JPG, or WEBP up to 8MB
+                  </p>
                 </div>
               )}
             </div>
 
-            {/* Manual text hint input */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="block text-xs font-semibold text-slate-700">
-                  Item Description or Type Hint (Optional)
-                </label>
-                {itemHint && (
-                  <button
-                    onClick={() => setItemHint('')}
-                    className="text-[11px] text-slate-400 hover:text-slate-600 font-medium"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
+            {/* Optional hint input */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Item description or label hint (optional)
+              </label>
               <input
                 type="text"
                 value={itemHint}
                 onChange={(e) => setItemHint(e.target.value)}
-                placeholder="e.g. plastic food container, transparent water bottle, vegetable peels..."
-                className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                placeholder="e.g. Broken glass bottle, blister pack, plastic container..."
+                className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-slate-900 bg-white placeholder-slate-400"
               />
-
-              {/* Quick contextual tag chips */}
-              <div className="pt-1 flex flex-wrap gap-1 items-center">
-                <span className="text-[10px] text-slate-400 font-medium">Quick hints:</span>
-                {[
-                  'Plastic Container / Dabba',
-                  'Water Bottle (PET)',
-                  'Milk Pouch',
-                  'Cardboard Box',
-                  'Food Scraps',
-                  'Glass Jar',
-                  'Metal Can'
-                ].map((tag) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => setItemHint(tag)}
-                    className={`text-[10px] px-2 py-0.5 rounded-md border transition-colors ${
-                      itemHint.toLowerCase().includes(tag.toLowerCase().slice(0, 7))
-                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300 font-semibold'
-                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200'
-                    }`}
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
             </div>
 
-            {/* Submit Action */}
-            <div className="flex gap-2">
+            {/* Trigger Button */}
+            <div className="pt-2 flex items-center gap-2">
               <button
                 onClick={() => handleRunClassification()}
                 disabled={isLoading || (!selectedImage && !itemHint.trim())}
-                className="flex-1 py-3 px-4 bg-emerald-700 hover:bg-emerald-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs sm:text-sm shadow-md shadow-emerald-700/20 flex items-center justify-center gap-2 transition-all"
+                className="flex-1 py-2.5 px-4 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-2 shadow-xs"
               >
                 {isLoading ? (
                   <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Classifying Waste...</span>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Analyzing...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4 text-emerald-200" />
-                    <span>Classify Waste Now</span>
+                    <Sparkles className="w-3.5 h-3.5 text-teal-400" />
+                    <span>Identify Waste Stream</span>
                   </>
                 )}
               </button>
@@ -368,33 +328,33 @@ export const IdentifyPage: React.FC<IdentifyPageProps> = ({
               {(selectedImage || itemHint || classification) && (
                 <button
                   onClick={handleReset}
-                  className="px-3 py-3 border border-slate-200 hover:bg-slate-100 rounded-xl text-slate-600 text-xs font-semibold"
-                  title="Reset inputs"
+                  className="px-3 py-2.5 border border-slate-300 hover:bg-slate-50 rounded-lg text-slate-600 text-xs font-medium"
+                  title="Clear inputs"
                 >
-                  <RefreshCw className="w-4 h-4" />
+                  <RefreshCw className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
           </div>
 
-          {/* Quick Preset Buttons for Instant Testing */}
-          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                <span>Quick Test Presets (1-Click Demo)</span>
+          {/* Quick presets for evaluation */}
+          <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-2">
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-800">
+              <span className="flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 text-slate-600" />
+                <span>1-Click Test Presets</span>
               </span>
-              <span className="text-[10px] text-slate-500">Hackathon friendly</span>
+              <span className="text-[11px] font-normal text-slate-500">Rapid review</span>
             </div>
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              Don't have a photo handy? Click any common Indian household item below to run instant segregation classification:
+            <p className="text-[11px] text-slate-600 leading-normal">
+              Click any sample item below to trigger instant classification:
             </p>
             <div className="flex flex-wrap gap-1.5 pt-1">
               {SAMPLE_PRESET_ITEMS.map((preset) => (
                 <button
                   key={preset.id}
                   onClick={() => handleSelectPreset(preset)}
-                  className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium transition-all hover:scale-105 active:scale-95 ${preset.color}`}
+                  className="text-[11px] px-2.5 py-1 rounded border border-slate-200 bg-white text-slate-700 hover:border-slate-400 hover:text-slate-900 transition-colors font-medium"
                 >
                   {preset.label}
                 </button>
@@ -403,52 +363,45 @@ export const IdentifyPage: React.FC<IdentifyPageProps> = ({
           </div>
         </div>
 
-        {/* Right Col: Classification Output (7 cols) */}
+        {/* Right Column: Diagnostic Result Matrix (7 cols) */}
         <div className="lg:col-span-7">
           {isLoading ? (
-            /* Loading State with Stage Progress */
-            <div className="bg-white rounded-3xl p-10 border border-slate-200 text-center space-y-5 shadow-sm min-h-[420px] flex flex-col items-center justify-center">
-              <div className="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-700 flex items-center justify-center animate-bounce">
-                <Sparkles className="w-8 h-8" />
+            <div className="bg-white rounded-xl p-10 border border-slate-200 text-center space-y-4 min-h-[360px] flex flex-col items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center animate-spin">
+                <RefreshCw className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-slate-800">
-                  PrithveX AI is Analyzing the Item
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Analyzing Waste Item
                 </h3>
-                <p className="text-xs text-emerald-700 font-medium">
-                  {loadingStep || 'Mapping material properties to Indian segregation rules...'}
+                <p className="text-xs text-slate-500 font-medium">
+                  {loadingStep || 'Mapping material signature against CPCB SWM 2016...'}
                 </p>
               </div>
-              <div className="w-48 h-1.5 bg-slate-100 rounded-full overflow-hidden mx-auto">
-                <div className="w-full h-full bg-emerald-600 animate-pulse"></div>
+              <div className="w-48 h-1 bg-slate-100 rounded-full overflow-hidden mx-auto">
+                <div className="w-full h-full bg-slate-900 animate-pulse" />
               </div>
-              <p className="text-[11px] text-slate-400">
-                Evaluating against CPCB SWM 2016 & Plastic/E-Waste/Battery Management rules
-              </p>
             </div>
           ) : classification ? (
-            /* Detailed Classification Result Card */
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-md space-y-6 animate-in fade-in duration-300">
-              {/* Top Banner: Bin Stream & Confidence */}
+            <div className="bg-white rounded-xl p-6 sm:p-7 border border-slate-200 shadow-2xs space-y-5 animate-in fade-in duration-200">
+              {/* Result Stream Banner */}
               {(() => {
-                const bin = getBinBadge(classification.binColor);
+                const meta = getBinMeta(classification.binColor);
                 return (
-                  <div className={`p-4 rounded-2xl border ${bin.container} flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3`}>
+                  <div className={`p-4 rounded-lg border ${meta.borderColor} bg-slate-50/70 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3`}>
                     <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider ${bin.bg}`}>
-                        {classification.binName}
-                      </span>
+                      <span className={`w-3.5 h-3.5 rounded-full shrink-0 ${meta.dot}`} />
                       <div>
-                        <h4 className="font-bold text-xs sm:text-sm">
-                          Assigned Stream: {classification.categoryLabel}
+                        <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                          {classification.binName}
                         </h4>
-                        <p className="text-[11px] opacity-80">
-                          Primary Pathway: <strong>{classification.primaryPathway}</strong>
+                        <p className="text-xs text-slate-600">
+                          Pathway: <strong>{classification.primaryPathway}</strong> · Category: {classification.categoryLabel}
                         </p>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-white/70 border border-current text-slate-800">
+                      <span className="text-[11px] font-mono text-slate-700 font-semibold px-2 py-0.5 rounded bg-white border border-slate-200">
                         {Math.round(classification.confidence * 100)}% Confidence
                       </span>
                     </div>
@@ -456,20 +409,64 @@ export const IdentifyPage: React.FC<IdentifyPageProps> = ({
                 );
               })()}
 
-              {/* Title & Explanation */}
+              {/* Low Confidence Confirmation Prompt */}
+              {isLowConfidence && !userConfirmedLowConfidence && (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <HelpCircle className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
+                    <div className="text-xs leading-relaxed">
+                      <span className="font-semibold text-amber-950">Ambiguous Material Detection:</span>{' '}
+                      The vision model identified this as <strong>{classification.itemName}</strong> with {Math.round(classification.confidence * 100)}% confidence.
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <button
+                      onClick={() => setUserConfirmedLowConfidence(true)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs shadow-2xs"
+                    >
+                      <ThumbsUp className="w-3.5 h-3.5" />
+                      Yes, that's correct
+                    </button>
+
+                    <div className="flex items-center gap-1.5 flex-1 min-w-[200px]">
+                      <input
+                        type="text"
+                        value={clarificationText}
+                        onChange={(e) => setClarificationText(e.target.value)}
+                        placeholder="Or clarify name (e.g. tetra pak carton)..."
+                        className="flex-1 text-xs px-2.5 py-1.5 bg-white border border-amber-300 rounded focus:outline-none"
+                      />
+                      <button
+                        onClick={() => {
+                          if (clarificationText.trim()) {
+                            handleRunClassification(clarificationText.trim());
+                            setClarificationText('');
+                          }
+                        }}
+                        className="px-2.5 py-1.5 bg-slate-900 text-white text-xs font-medium rounded"
+                      >
+                        Re-classify
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Title & Material Assessment */}
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-mono">
-                    Provider: {classification.provider === 'gemini-3.8-flash' ? 'Google Gemini 3.8 Flash' : 'Demo Rule-Based Classifier'}
-                  </span>
+                <div className="flex items-center gap-2 text-xs text-slate-500 mb-1 font-mono">
+                  <span>Engine: {classification.provider === 'gemini-3.8-flash' ? 'Google Gemini 3.8 Flash' : 'Deterministic Rule Engine'}</span>
                   {classification.isHazardous && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3 text-rose-600" />
-                      <span>Hazardous / Special Care</span>
-                    </span>
+                    <>
+                      <span aria-hidden="true">·</span>
+                      <span className="text-rose-700 font-sans font-medium flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        <span>Hazardous</span>
+                      </span>
+                    </>
                   )}
                 </div>
-                <h2 className="text-2xl font-black text-slate-900">
+                <h2 className="text-xl font-bold text-slate-900">
                   {classification.itemName}
                 </h2>
                 <p className="text-xs text-slate-600 mt-2 leading-relaxed">
@@ -477,121 +474,152 @@ export const IdentifyPage: React.FC<IdentifyPageProps> = ({
                 </p>
               </div>
 
-              {/* Key Preparation Steps Checklist */}
+              {/* Preparation Steps Checklist */}
               {classification.preparationSteps && classification.preparationSteps.length > 0 && (
-                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-2">
-                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>Preparation Steps Before Handover</span>
+                <div className="border border-slate-200 rounded-lg p-4 bg-slate-50/50 space-y-2">
+                  <h4 className="text-xs font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Mandatory Preparation Checklist</span>
                   </h4>
-                  <ul className="space-y-1.5 text-xs text-slate-700">
+                  <ol className="space-y-1.5 text-xs text-slate-700 list-decimal list-inside">
                     {classification.preparationSteps.map((step, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
-                          {idx + 1}
-                        </span>
-                        <span>{step}</span>
-                      </li>
+                      <li key={idx} className="leading-relaxed">{step}</li>
                     ))}
-                  </ul>
+                  </ol>
                 </div>
               )}
 
-              {/* Grid: Reuse, Recycling, Next Action */}
+              {/* Circular Options: Reuse & Industrial Recycling */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 {classification.reuseOptions && (
-                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
-                    <p className="font-bold text-slate-800 text-[11px] mb-1">Reuse / Upcycling</p>
+                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <p className="font-semibold text-slate-900 text-[11px] mb-1">Upcycling & Secondary Uses</p>
                     <p className="text-slate-600 leading-relaxed">{classification.reuseOptions}</p>
                   </div>
                 )}
                 {classification.recyclingOptions && (
-                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
-                    <p className="font-bold text-slate-800 text-[11px] mb-1">Recycling Process in India</p>
+                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <p className="font-semibold text-slate-900 text-[11px] mb-1">Recycling Process in India</p>
                     <p className="text-slate-600 leading-relaxed">{classification.recyclingOptions}</p>
                   </div>
                 )}
               </div>
 
-              {/* Safety Warning if provided */}
+              {/* Safety Warning */}
               {classification.warnings && (
-                <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-900 flex items-start gap-2.5">
+                <div className="p-3.5 bg-rose-50/70 border border-rose-200 rounded-lg text-xs text-rose-900 flex items-start gap-2.5">
                   <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-bold text-[11px] uppercase tracking-wider text-rose-800">
-                      Safety Warning
-                    </p>
-                    <p className="mt-0.5 leading-relaxed">{classification.warnings}</p>
+                    <h5 className="font-semibold mb-0.5">Handling Warning</h5>
+                    <p className="leading-relaxed text-[11px]">{classification.warnings}</p>
                   </div>
                 </div>
               )}
 
-              {/* CPCB Statutory Regulation Reference */}
+              {/* Statutory Regulation Reference */}
               {classification.cpcbRegulation && (
-                <div className="flex items-center gap-2 p-2.5 bg-slate-100 rounded-xl text-slate-600 text-[11px]">
+                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-[11px] text-slate-600 flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span><strong>Statutory Rule:</strong> {classification.cpcbRegulation}</span>
+                  <span><strong>Statutory Regulation:</strong> {classification.cpcbRegulation}</span>
                 </div>
               )}
 
-              {/* Action Buttons */}
-              <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100">
-                <div className="flex items-center gap-2 w-full sm:w-auto">
+              {/* Actions Footer */}
+              <div className="pt-4 border-t border-slate-200 space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
-                    onClick={handleLogToDashboard}
-                    disabled={isLogged}
-                    className={`w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors ${
-                      isLogged
-                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                        : 'bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs'
-                    }`}
+                    onClick={() => onNavigate('recyclers', classification.category)}
+                    className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-2xs"
                   >
-                    <BookmarkCheck className="w-4 h-4" />
-                    <span>{isLogged ? 'Logged to Impact Dashboard' : 'Log to My Dashboard'}</span>
+                    <Building2 className="w-3.5 h-3.5 text-teal-400" />
+                    <span>Find Recyclers for {classification.categoryLabel}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
 
                   <button
-                    onClick={() => onNavigate('recyclers', classification.category)}
-                    className="w-full sm:w-auto px-4 py-2.5 border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                    onClick={() => onNavigate('buyers')}
+                    className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-2xs"
                   >
-                    <span>Find Recyclers</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
+                    <Coins className="w-3.5 h-3.5" />
+                    <span>Find Bulk Scrap Buyers</span>
+                  </button>
+
+                  <button
+                    onClick={() => onNavigate('marketplace')}
+                    className="px-3 py-2 border border-slate-300 hover:bg-slate-100 text-slate-800 rounded-lg text-xs font-medium inline-flex items-center gap-1.5 transition-colors"
+                  >
+                    <Store className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Sell on Marketplace</span>
                   </button>
                 </div>
 
-                <button
-                  onClick={handleReset}
-                  className="text-xs text-slate-500 hover:text-slate-800 font-semibold underline"
-                >
-                  Classify Another Item
-                </button>
+                {/* Log Sustainable Action Multi-Option */}
+                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <span className="font-semibold text-slate-700">
+                    Record your circular action:
+                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <button
+                      onClick={() => handleLogToDashboard('segregated')}
+                      disabled={isLogged}
+                      className="px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 rounded text-xs font-medium transition-colors"
+                    >
+                      + Segregated
+                    </button>
+                    <button
+                      onClick={() => handleLogToDashboard('reused')}
+                      disabled={isLogged}
+                      className="px-2.5 py-1 bg-white hover:bg-blue-50 text-blue-800 border border-blue-300 rounded text-xs font-medium transition-colors"
+                    >
+                      + Reused
+                    </button>
+                    <button
+                      onClick={() => handleLogToDashboard('donated')}
+                      disabled={isLogged}
+                      className="px-2.5 py-1 bg-white hover:bg-purple-50 text-purple-800 border border-purple-300 rounded text-xs font-medium transition-colors"
+                    >
+                      + Donated
+                    </button>
+                    <button
+                      onClick={() => handleLogToDashboard('sold')}
+                      disabled={isLogged}
+                      className="px-2.5 py-1 bg-white hover:bg-amber-50 text-amber-800 border border-amber-300 rounded text-xs font-medium transition-colors"
+                    >
+                      + Sold Scrap
+                    </button>
+                  </div>
+                </div>
               </div>
-
-              {/* AI Disclaimer */}
-              <p className="text-[11px] text-slate-400 text-center italic">
-                * AI-generated suggestion grounded in Indian Municipal Solid Waste Management (SWM 2016) protocols. Verify local urban local body (ULB) requirements for your specific ward.
-              </p>
             </div>
           ) : (
-            /* Empty State */
-            <div className="bg-slate-50 rounded-3xl p-10 border border-dashed border-slate-300 text-center space-y-4 min-h-[420px] flex flex-col items-center justify-center">
-              <div className="w-14 h-14 rounded-2xl bg-white text-slate-400 flex items-center justify-center shadow-xs">
-                <Sparkles className="w-6 h-6 text-emerald-600" />
+            /* Empty State / Standby Guidance */
+            <div className="border border-slate-200 rounded-xl bg-slate-50/50 p-8 sm:p-12 text-center space-y-4">
+              <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 text-slate-500 flex items-center justify-center mx-auto">
+                <Sparkles className="w-6 h-6 text-teal-600" />
               </div>
-              <div className="max-w-sm space-y-1">
-                <h3 className="font-bold text-slate-800 text-sm">
-                  Ready to Classify Your Waste
+              <div className="max-w-md mx-auto space-y-1">
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Awaiting Material Input
                 </h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  Upload an image on the left, or click one of the quick test presets to experience PrithveX's segregation analysis.
+                  Upload a photo or choose a quick test item on the left. PrithveX will output the exact bin destination, statutory preparation steps, and direct links to recyclers and bulk buyers.
                 </p>
               </div>
-              <div className="p-3 bg-white rounded-xl border border-slate-200 text-[11px] text-slate-600 text-left space-y-1 max-w-xs">
-                <p className="font-semibold text-slate-800">What PrithveX provides:</p>
-                <p>✓ Correct Indian bin color (Green/Blue/Red/Grey)</p>
-                <p>✓ Specific preparation checklist (Rinse/Dry)</p>
-                <p>✓ Reuse and local recycler destination</p>
-                <p>✓ Safety warnings for domestic hazardous</p>
+
+              {/* Preview Checklist */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-lg mx-auto pt-4 text-left text-xs">
+                <div className="p-3 bg-white rounded-lg border border-slate-200">
+                  <p className="font-semibold text-slate-900 text-[11px]">1. Stream Color</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Green, Blue, Red, or Red-dot wrap</p>
+                </div>
+                <div className="p-3 bg-white rounded-lg border border-slate-200">
+                  <p className="font-semibold text-slate-900 text-[11px]">2. Preparation</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Rinsing, drying, cutting corners</p>
+                </div>
+                <div className="p-3 bg-white rounded-lg border border-slate-200">
+                  <p className="font-semibold text-slate-900 text-[11px]">3. Local Recycler</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Direct match in your city</p>
+                </div>
               </div>
             </div>
           )}
