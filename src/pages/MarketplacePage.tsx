@@ -31,6 +31,7 @@ import {
   getUserProfile 
 } from '../services/storageService';
 import { CITIES_LIST } from '../data/recyclers';
+import { petBottlesImg, handleImageFallback } from '../utils/imageUtils';
 
 interface MarketplacePageProps {
   onNavigate?: (tab: string) => void;
@@ -330,25 +331,51 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({ onNavigate }) 
               return (
                 <div
                   key={listing.id}
-                  className="bg-white border border-slate-200 rounded-xl shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between"
+                  className="bg-white border border-[#E3E8EF] rounded-2xl overflow-hidden shadow-xs hover:border-[#19B5A5] hover:shadow-md transition-all flex flex-col justify-between group"
                 >
-                  <div className="p-5">
-                    {/* Top Row: Type and Condition Badges */}
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <div className="flex flex-wrap items-center gap-1.5">
+                  {/* Photo Header if available */}
+                  {listing.imageUrl && (
+                    <div className="h-44 w-full overflow-hidden bg-[#F4F6F8] relative">
+                      <img
+                        src={listing.imageUrl}
+                        onError={(e) => handleImageFallback(e, petBottlesImg)}
+                        alt={listing.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                      <div className="absolute top-3 left-3">
                         <span
-                          className={`px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wide ${
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm ${
                             listing.type === 'sell'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-teal-100 text-teal-800'
+                              ? 'bg-[#19B5A5] text-white'
+                              : 'bg-[#111C2E] text-white'
                           }`}
                         >
                           {listing.type === 'sell' ? 'For Sale' : 'Looking to Buy'}
                         </span>
-                        <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
-                          {listing.condition}
-                        </span>
                       </div>
+                    </div>
+                  )}
+
+                  <div className="p-5">
+                    {/* Top Row: Type and Condition Badges */}
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {!listing.imageUrl && (
+                            <span
+                              className={`px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wide ${
+                                listing.type === 'sell'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : 'bg-teal-100 text-teal-800'
+                              }`}
+                            >
+                              {listing.type === 'sell' ? 'For Sale' : 'Looking to Buy'}
+                            </span>
+                          )}
+                          <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-[#F4F6F8] text-[#253247] border border-[#E3E8EF]">
+                            {listing.condition}
+                          </span>
+                        </div>
 
                       <button
                         onClick={() => handleToggleSave(listing.id)}

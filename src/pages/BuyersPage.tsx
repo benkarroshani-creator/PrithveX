@@ -583,7 +583,7 @@ export const BuyersPage: React.FC<BuyersPageProps> = ({ onNavigate }) => {
                 <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto mb-2" />
                 <p className="text-sm font-semibold text-slate-900">Application Received!</p>
                 <p className="text-xs text-slate-500 mt-1">
-                  Our verification officer will verify your GST / CPCB credentials and publish your enterprise profile.
+                  Our verification desk will audit your GST / CPCB credentials and publish your enterprise profile.
                 </p>
               </div>
             ) : (

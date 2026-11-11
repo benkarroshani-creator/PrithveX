@@ -78,7 +78,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     else if (report.status === 'Assigned') nextStatus = 'Resolved';
 
     const ward = assignWardText[report.id] || report.assignedWard || 'Ward Sanitation Zonal Unit 4';
-    const notes = notesText[report.id] || report.resolutionNotes || 'Inspected by zonal sanitation officer.';
+    const notes = notesText[report.id] || report.resolutionNotes || 'Inspected and verified by zonal sanitation desk.';
 
     await updateReportStatus(report.id, nextStatus, ward, notes);
     onRefreshData();
@@ -98,17 +98,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       {/* Console Header */}
-      <div className="bg-slate-950 text-white rounded-xl p-6 sm:p-7 border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
+      <div className="bg-[#111C2E] text-white rounded-2xl p-6 sm:p-7 border border-[#253247] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono text-amber-400">
+          <div className="flex items-center gap-2 text-xs font-mono text-[#E8A84E]">
             <ShieldAlert className="w-4 h-4" />
-            <span>MUNICIPAL & CIRCULAR OPERATIONS DESK</span>
+            <span>CIRCULARITY OPERATIONS & VERIFICATION DESK</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight mt-1 text-white">
-            Civic Operations & Verification Control
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight mt-1 text-white">
+            Circularity Operations Desk
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5 max-w-xl">
-            Inspect pending citizen wall stories, advance municipal grievance tickets, audit marketplace trades, and verify user directory corrections.
+          <p className="text-xs text-[#E3E8EF] mt-0.5 max-w-xl">
+            Review citizen sustainability stories, resolve municipal grievance tickets, audit marketplace transactions, and verify facility directory corrections.
           </p>
         </div>
 
@@ -287,8 +287,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-medium text-slate-700 mb-1">
-                      Officer Inspection Notes
+                    <label className="block text-[11px] font-semibold text-[#111C2E] mb-1">
+                      Sanitation Desk Verification Notes
                     </label>
                     <input
                       type="text"

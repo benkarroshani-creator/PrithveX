@@ -18,6 +18,12 @@ import {
 import { WASTE_ITEMS } from '../data/wasteItems';
 import { WasteCard } from '../components/WasteCard';
 import { WasteItem } from '../types';
+import { 
+  heroSegregationImg, 
+  wasteBinsImg, 
+  mrfFacilityImg, 
+  handleImageFallback 
+} from '../utils/imageUtils';
 
 interface HomePageProps {
   onNavigate: (tab: string, filter?: string) => void;
@@ -137,10 +143,11 @@ export const HomePage: React.FC<HomePageProps> = ({
             <div className="lg:col-span-5">
               <div className="relative border border-[#253247] rounded-2xl overflow-hidden bg-[#111C2E] shadow-2xl">
                 <img
-                  src="/src/assets/images/hero_segregation_clean_1791110763384.jpg"
+                  src={heroSegregationImg}
+                  onError={(e) => handleImageFallback(e, wasteBinsImg)}
                   alt="Household source segregation with clean dry recyclable boxes and compost khamba"
                   className="w-full h-80 lg:h-96 object-cover"
-                  referrerPolicy="no-referrer"
+                  loading="eager"
                 />
                 <div className="p-4 bg-[#111C2E]/95 border-t border-[#253247] text-xs">
                   <div className="flex items-center justify-between text-[11px] text-[#E3E8EF] mb-1">

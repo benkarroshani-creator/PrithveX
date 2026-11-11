@@ -147,7 +147,7 @@ export const ReportIssuePage: React.FC<ReportIssuePageProps> = ({
             Report Waste Grievance or Dumping Black-Spot
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl">
-            Lodge geo-tagged civic complaints for illegal garbage burning, overflowing community bins, or open dumping. Track municipal officer review and sanitation resolution.
+            Lodge geo-tagged civic complaints for illegal garbage burning, overflowing community bins, or open dumping. Track municipal verification and sanitation desk resolution.
           </p>
         </div>
 

@@ -11,6 +11,7 @@ import {
   BookmarkCheck
 } from 'lucide-react';
 import { WasteItem } from '../types';
+import { getWasteItemImage, handleImageFallback } from '../utils/imageUtils';
 
 interface WasteCardProps {
   item: WasteItem;
@@ -61,32 +62,42 @@ export const WasteCard: React.FC<WasteCardProps> = ({
   };
 
   const binMeta = getBinMeta();
+  const itemImage = item.imageUrl || getWasteItemImage(item.id, item.category);
 
   return (
     <>
-      <article className="bg-white border border-slate-200/90 rounded-xl p-5 flex flex-col justify-between hover:border-slate-300 hover:shadow-xs transition-all group">
-        <div>
-          {/* Metadata Row: Zero-pill discipline with typographic separators */}
-          <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
-            <span className="inline-flex items-center gap-1.5 font-medium text-slate-800">
-              <span className={`w-2 h-2 rounded-full ${binMeta.dot}`} />
-              <span>{item.binName}</span>
-            </span>
-            <span aria-hidden="true" className="text-slate-300">·</span>
-            <span className="text-slate-600">{item.primaryPathway}</span>
+      <article className="bg-white border border-[#E3E8EF] rounded-2xl overflow-hidden flex flex-col justify-between hover:border-[#19B5A5] hover:shadow-md transition-all group">
+        {/* Photo Header */}
+        <div className="relative h-36 w-full overflow-hidden bg-[#F4F6F8]">
+          <img
+            src={itemImage}
+            onError={(e) => handleImageFallback(e)}
+            alt={item.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+          />
+          <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#111C2E]/85 backdrop-blur-sm text-white text-[11px] font-semibold">
+            <span className={`w-2 h-2 rounded-full ${binMeta.dot}`} />
+            <span>{item.binName}</span>
           </div>
+          <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-white/90 backdrop-blur-sm text-[#111C2E] text-[10px] font-bold shadow-xs">
+            {item.primaryPathway}
+          </div>
+        </div>
 
-          {/* Item Name & Hindi Transliteration */}
-          <div className="mb-2">
-            <h3 className="font-semibold text-slate-900 text-base leading-snug group-hover:text-slate-700 transition-colors">
-              {item.name}
-            </h3>
-            {item.hindiName && (
-              <p className="text-xs text-slate-500 font-normal">
-                {item.hindiName}
-              </p>
-            )}
-          </div>
+        <div className="p-5 flex-1 flex flex-col justify-between">
+          <div>
+            {/* Item Name & Hindi Transliteration */}
+            <div className="mb-2">
+              <h3 className="font-bold text-[#111C2E] text-base leading-snug group-hover:text-[#19B5A5] transition-colors">
+                {item.name}
+              </h3>
+              {item.hindiName && (
+                <p className="text-xs text-[#718096] font-medium">
+                  {item.hindiName}
+                </p>
+              )}
+            </div>
 
           {/* Description */}
           <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed mb-4">
@@ -135,7 +146,8 @@ export const WasteCard: React.FC<WasteCardProps> = ({
             </button>
           )}
         </div>
-      </article>
+      </div>
+    </article>
 
       {/* Comprehensive 10-Point Modal */}
       {modalOpen && (
@@ -168,6 +180,16 @@ export const WasteCard: React.FC<WasteCardProps> = ({
 
             {/* Modal Body: 10-Point Protocol */}
             <div className="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
+              {/* Photo Preview */}
+              <div className="h-48 w-full rounded-xl overflow-hidden border border-[#E3E8EF] shadow-inner bg-[#F4F6F8]">
+                <img
+                  src={itemImage}
+                  onError={(e) => handleImageFallback(e)}
+                  alt={item.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
               {/* 1. Item Classification */}
               <div>
                 <h4 className="font-semibold text-slate-900 text-xs mb-1">

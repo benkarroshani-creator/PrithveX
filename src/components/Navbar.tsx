@@ -73,15 +73,15 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <button
               onClick={onToggleAdmin}
-              className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-sans font-medium transition-colors ${
+              className={`flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-sans font-semibold transition-colors ${
                 isAdmin 
-                  ? 'bg-[#E8A84E] text-[#111C2E] font-bold' 
+                  ? 'bg-[#E8A84E] text-[#111C2E] font-bold shadow-xs' 
                   : 'text-[#E3E8EF] hover:text-white hover:bg-white/10'
               }`}
-              title="Toggle Hackathon Admin / Zonal Officer Portal"
+              title="Circularity Operations & Zonal Verification Desk"
             >
-              <ShieldAlert className="w-3 h-3" />
-              <span>{isAdmin ? 'Admin Portal Active' : 'Judge / Officer'}</span>
+              <ShieldAlert className="w-3 h-3 text-[#E8A84E]" />
+              <span>{isAdmin ? 'Operations Desk Active' : 'Operations Desk'}</span>
             </button>
           </div>
         </div>
@@ -234,7 +234,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }}
               className="text-xs text-[#E8A84E] font-bold px-3 py-2"
             >
-              {isAdmin ? 'Exit Admin' : 'Admin Portal'}
+              {isAdmin ? 'Exit Operations Desk' : 'Operations Desk'}
             </button>
           </div>
         </div>

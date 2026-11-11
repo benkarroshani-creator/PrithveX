@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { GUIDES } from '../data/guides';
 import { EducationalGuide } from '../types';
+import { getWasteItemImage, handleImageFallback, petBottlesImg } from '../utils/imageUtils';
 
 interface LearnPageProps {
   onNavigate: (tab: string, filter?: string) => void;
@@ -64,19 +65,31 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onNavigate }) => {
 
       {/* Guides Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredGuides.map((guide) => (
-          <article
-            key={guide.id}
-            className="bg-white rounded-xl border border-slate-200 p-6 flex flex-col justify-between hover:border-slate-300 hover:shadow-2xs transition-all group"
-          >
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs text-slate-500">
-                <span className="font-medium text-slate-800">{guide.difficulty}</span>
-                <span className="flex items-center gap-1 text-[11px]">
-                  <Clock className="w-3.5 h-3.5 text-slate-400" />
-                  <span>{guide.estimatedMinutes} min read</span>
-                </span>
+        {filteredGuides.map((guide) => {
+          const guideImg = getWasteItemImage(guide.id, guide.category);
+          return (
+            <article
+              key={guide.id}
+              className="bg-white rounded-2xl border border-[#E3E8EF] overflow-hidden flex flex-col justify-between hover:border-[#19B5A5] hover:shadow-md transition-all group"
+            >
+              <div className="h-40 w-full overflow-hidden bg-[#F4F6F8] relative">
+                <img
+                  src={guideImg}
+                  onError={(e) => handleImageFallback(e, petBottlesImg)}
+                  alt={guide.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+                <div className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-[#111C2E]/85 backdrop-blur-sm text-white text-[10px] font-bold">
+                  {guide.difficulty}
+                </div>
+                <div className="absolute top-3 right-3 px-2.5 py-0.5 rounded-full bg-white/90 backdrop-blur-sm text-[#111C2E] text-[10px] font-bold">
+                  {guide.estimatedMinutes} min read
+                </div>
               </div>
+
+              <div className="p-5 flex-1 flex flex-col justify-between">
+                <div className="space-y-2.5">
 
               <div>
                 <h3 className="font-bold text-slate-900 text-base leading-snug group-hover:text-slate-700 transition-colors">
@@ -97,15 +110,17 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onNavigate }) => {
               </div>
             </div>
 
-            <button
-              onClick={() => setSelectedGuide(guide)}
-              className="mt-5 w-full py-2 px-3 border border-slate-300 hover:bg-slate-50 text-slate-900 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
-            >
-              <span>Read complete protocol</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+              <button
+                onClick={() => setSelectedGuide(guide)}
+                className="mt-5 w-full py-2 px-3 border border-[#E3E8EF] hover:border-[#19B5A5] hover:bg-[#E7F8F6] text-[#111C2E] hover:text-[#138D81] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+              >
+                <span>Read complete protocol</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </article>
-        ))}
+        );
+      })}
       </div>
 
       {/* Guide Detail Dialog */}
@@ -138,6 +153,15 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onNavigate }) => {
 
             {/* Content Body */}
             <div className="p-6 overflow-y-auto space-y-6 text-xs text-slate-700">
+              <div className="h-48 w-full rounded-xl overflow-hidden border border-[#E3E8EF] shadow-inner bg-[#F4F6F8]">
+                <img
+                  src={getWasteItemImage(selectedGuide.id, selectedGuide.category)}
+                  onError={(e) => handleImageFallback(e, petBottlesImg)}
+                  alt={selectedGuide.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
               <div>
                 <h4 className="font-semibold text-slate-900 text-xs mb-1">Overview</h4>
                 <p className="text-slate-600 leading-relaxed">{selectedGuide.summary}</p>

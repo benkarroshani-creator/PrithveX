@@ -24,7 +24,7 @@ export const INITIAL_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
     createdAt: '2026-10-28T09:30:00Z',
     userId: 'user-blr-rwa',
     enquiriesCount: 3,
-    imageUrl: ''
+    imageUrl: '/images/pet_bottles_recycling.jpg'
   },
   {
     id: 'mkt-002',
@@ -49,7 +49,7 @@ export const INITIAL_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
     createdAt: '2026-10-29T14:15:00Z',
     userId: 'user-del-log',
     enquiriesCount: 5,
-    imageUrl: ''
+    imageUrl: '/images/cardboard_paper_bales.jpg'
   },
   {
     id: 'mkt-003',
@@ -74,7 +74,7 @@ export const INITIAL_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
     createdAt: '2026-10-30T11:00:00Z',
     userId: 'user-mum-corp',
     enquiriesCount: 2,
-    imageUrl: ''
+    imageUrl: '/images/ewaste_sorting_hub.jpg'
   },
   {
     id: 'mkt-004',
@@ -99,7 +99,7 @@ export const INITIAL_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
     createdAt: '2026-10-31T08:00:00Z',
     userId: 'user-pun-buyer',
     enquiriesCount: 6,
-    imageUrl: ''
+    imageUrl: 'https://images.unsplash.com/photo-1595278069441-2cf29f8005a4?auto=format&fit=crop&w=600&q=80'
   },
   {
     id: 'mkt-005',
@@ -124,7 +124,7 @@ export const INITIAL_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
     createdAt: '2026-11-01T10:20:00Z',
     userId: 'user-hyd-resto',
     enquiriesCount: 4,
-    imageUrl: ''
+    imageUrl: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=600&q=80'
   },
   {
     id: 'mkt-006',
@@ -149,6 +149,6 @@ export const INITIAL_MARKETPLACE_LISTINGS: MarketplaceListing[] = [
     createdAt: '2026-11-01T12:00:00Z',
     userId: 'user-ahm-buyer',
     enquiriesCount: 1,
-    imageUrl: ''
+    imageUrl: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=600&q=80'
   }
 ];

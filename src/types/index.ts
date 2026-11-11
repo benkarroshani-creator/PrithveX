@@ -57,6 +57,7 @@ export interface WasteItem {
   cpcbGuideline?: string;
   commonExamples?: string[];
   tags: string[];
+  imageUrl?: string;
 }
 
 export interface ClassificationResult {
@@ -76,7 +77,7 @@ export interface ClassificationResult {
   suggestedNextAction: string;
   isHazardous: boolean;
   cpcbRegulation?: string;
-  provider: 'gemini-3.8-flash' | 'demo_classifier';
+  provider: string;
   timestamp: string;
 }
 

@@ -148,7 +148,7 @@ export default function App() {
           setIsAdmin(!isAdmin);
           if (!isAdmin) {
             setCurrentTab('admin');
-            showToast('Switched to Judge / Admin Moderator Portal', 'info');
+            showToast('Switched to Circularity Operations Desk', 'info');
           } else {
             setCurrentTab('home');
           }
