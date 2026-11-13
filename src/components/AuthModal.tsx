@@ -1,7 +1,14 @@
-import React, { useState } from 'react';
-import { X, User, LogOut, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, LogOut, ShieldCheck, AlertTriangle, Copy, Check, ExternalLink } from 'lucide-react';
 import { UserProfile } from '../types';
-import { loginWithGoogle, loginAsDemo, logoutUser } from '../services/authService';
+import {
+  loginWithGoogle,
+  loginWithGoogleRedirect,
+  loginAsDemo,
+  logoutUser,
+  formatFirebaseAuthError,
+  FormattedAuthError,
+} from '../services/authService';
 import { saveUserProfile } from '../services/storageService';
 
 interface AuthModalProps {
@@ -10,6 +17,7 @@ interface AuthModalProps {
   currentUser: UserProfile;
   onUserChange: (user: UserProfile) => void;
   onShowToast: (message: string, type?: 'success' | 'info' | 'error') => void;
+  initialAuthError?: FormattedAuthError | null;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -17,35 +25,75 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   currentUser,
   onUserChange,
-  onShowToast
+  onShowToast,
+  initialAuthError = null,
 }) => {
   const [city, setCity] = useState(currentUser.city || 'Bengaluru');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authError, setAuthError] = useState<FormattedAuthError | null>(initialAuthError);
+  const [copiedDomain, setCopiedDomain] = useState(false);
+
+  useEffect(() => {
+    setCity(currentUser.city || 'Bengaluru');
+  }, [currentUser.city, isOpen]);
+
+  useEffect(() => {
+    if (initialAuthError) {
+      setAuthError(initialAuthError);
+    } else if (isOpen) {
+      setAuthError(null);
+    }
+  }, [initialAuthError, isOpen]);
 
   if (!isOpen) return null;
 
   const handleGoogleSignIn = async () => {
     setIsSubmitting(true);
+    setAuthError(null);
     try {
       const profile = await loginWithGoogle();
-      onUserChange(profile);
-      onShowToast(`Signed in with Google as ${profile.name}!`, 'success');
-      onClose();
+      if (profile) {
+        onUserChange(profile);
+        onShowToast(`Signed in with Google as ${profile.name}!`, 'success');
+        onClose();
+      }
+      // If null, browser is redirecting to Google OAuth
     } catch (error: any) {
+      const formatted = formatFirebaseAuthError(error);
+      setAuthError(formatted);
       if (error?.code !== 'auth/popup-closed-by-user') {
-        onShowToast(error?.message || 'Google Sign-In failed. Please try again.', 'error');
+        onShowToast(formatted.title, 'error');
       }
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleRedirectSignIn = async () => {
+    setIsSubmitting(true);
+    setAuthError(null);
+    try {
+      await loginWithGoogleRedirect();
+    } catch (error: any) {
+      const formatted = formatFirebaseAuthError(error);
+      setAuthError(formatted);
+      onShowToast(formatted.title, 'error');
+      setIsSubmitting(false);
+    }
+  };
+
   const handleDemoSignIn = async () => {
     setIsSubmitting(true);
+    setAuthError(null);
     try {
-      const profile = await loginAsDemo();
+      const { profile, isFirebaseAnonymous } = await loginAsDemo();
       onUserChange(profile);
-      onShowToast('Signed in via Firebase Anonymous Auth!', 'success');
+      onShowToast(
+        isFirebaseAnonymous
+          ? 'Signed in via Firebase Anonymous Auth!'
+          : 'Signed in in local evaluation mode (Firebase Anonymous Auth disabled).',
+        isFirebaseAnonymous ? 'success' : 'info'
+      );
       onClose();
     } catch (error: any) {
       onShowToast('Demo sign-in failed.', 'error');
@@ -81,6 +129,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     onShowToast(`Location updated to ${city}`, 'success');
   };
 
+  const handleCopyDomain = async (domain: string) => {
+    try {
+      await navigator.clipboard.writeText(domain);
+      setCopiedDomain(true);
+      onShowToast(`Copied "${domain}" to clipboard`, 'info');
+      setTimeout(() => setCopiedDomain(false), 2000);
+    } catch {
+      onShowToast(`Domain: ${domain}`, 'info');
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-150">
       <div className="bg-white rounded-xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
@@ -91,7 +150,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               {currentUser.isLoggedIn ? 'Citizen Account Profile' : 'Citizen Authentication'}
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              {currentUser.isLoggedIn ? 'Persistent Firestore records & personal stats' : 'Sign in to record segregation & civic grievances'}
+              {currentUser.isLoggedIn
+                ? 'Persistent Firestore records & personal stats'
+                : 'Sign in to record segregation & civic grievances'}
             </p>
           </div>
           <button
@@ -190,11 +251,69 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </p>
               </div>
 
+              {authError && (
+                <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-900 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <p className="font-semibold text-rose-950">{authError.title}</p>
+                      <p className="text-[11px] text-rose-800 leading-relaxed">{authError.message}</p>
+                      <p className="text-[10px] font-mono text-rose-600">Code: {authError.code}</p>
+                    </div>
+                  </div>
+
+                  {authError.isUnauthorizedDomain && authError.domain && (
+                    <div className="pt-1.5 border-t border-rose-200/80 space-y-2">
+                      <div className="flex items-center justify-between gap-2 bg-white px-2.5 py-1.5 rounded border border-rose-200">
+                        <code className="text-[11px] font-mono text-slate-800 truncate">{authError.domain}</code>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyDomain(authError.domain)}
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 hover:text-slate-950 shrink-0"
+                        >
+                          {copiedDomain ? (
+                            <>
+                              <Check className="w-3 h-3 text-emerald-600" />
+                              <span>Copied</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3" />
+                              <span>Copy</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <a
+                        href="https://console.firebase.google.com/project/gen-lang-client-0256818664/authentication/settings"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-800 hover:text-rose-950 underline"
+                      >
+                        <span>Open Firebase Authorized Domains</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  )}
+
+                  {authError.canTryRedirect && (
+                    <button
+                      type="button"
+                      onClick={handleRedirectSignIn}
+                      disabled={isSubmitting}
+                      className="w-full py-2 px-3 bg-rose-700 hover:bg-rose-800 text-white rounded-md text-[11px] font-semibold transition-colors"
+                    >
+                      Try Redirect Sign-In Instead
+                    </button>
+                  )}
+                </div>
+              )}
+
               {/* Google Login */}
               <button
                 onClick={handleGoogleSignIn}
                 disabled={isSubmitting}
-                className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-lg text-xs font-medium shadow-2xs flex items-center justify-center gap-3 transition-colors"
+                className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 disabled:opacity-60 text-slate-800 border border-slate-300 rounded-lg text-xs font-medium shadow-2xs flex items-center justify-center gap-3 transition-colors"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
@@ -214,7 +333,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
                   />
                 </svg>
-                <span>Continue with Google</span>
+                <span>{isSubmitting ? 'Signing in...' : 'Continue with Google'}</span>
               </button>
 
               <div className="relative flex py-1 items-center">
@@ -230,9 +349,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 type="button"
                 onClick={handleDemoSignIn}
                 disabled={isSubmitting}
-                className="w-full py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-medium transition-colors"
+                className="w-full py-2 px-4 bg-slate-100 hover:bg-slate-200 disabled:opacity-60 text-slate-800 rounded-lg text-xs font-medium transition-colors"
               >
-                Instant Demo Citizen (Anonymous Auth)
+                Instant Demo Citizen (Evaluation Mode)
               </button>
 
               <p className="text-[11px] text-slate-400 text-center pt-1">

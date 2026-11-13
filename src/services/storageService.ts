@@ -577,6 +577,10 @@ export function getUserProfile(): UserProfile {
   return cachedUser;
 }
 
+export function setCachedUserProfile(profile: UserProfile): void {
+  cachedUser = profile;
+}
+
 export function subscribeToUserProfile(uid: string, callback: (profile: UserProfile) => void): () => void {
   const userPath = `users/${uid}`;
   try {

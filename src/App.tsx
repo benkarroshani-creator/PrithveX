@@ -29,13 +29,13 @@ import {
   getCommunityPosts, 
   getReports, 
   getUserProfile, 
+  setCachedUserProfile,
   incrementUserStat, 
   recordUserActivity,
   subscribeToCommunityPosts,
   subscribeToReports,
-  subscribeToUserProfile
 } from './services/storageService';
-import { subscribeToAuth } from './services/authService';
+import { subscribeToAuth, checkRedirectSignIn, FormattedAuthError } from './services/authService';
 import { ClassificationResult, CommunityPost, ReportIssue, UserProfile, WasteItem } from './types';
 
 export default function App() {
@@ -49,6 +49,7 @@ export default function App() {
   const [reports, setReports] = useState<ReportIssue[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [pendingAuthError, setPendingAuthError] = useState<FormattedAuthError | null>(null);
   const [toasts, setToasts] = useState<ToastData[]>([]);
 
   // Check server health on mount & wire Firebase real-time listeners
@@ -62,15 +63,30 @@ export default function App() {
     setReports(getReports());
     setCurrentUser(getUserProfile());
 
+    // Complete any pending Firebase Google redirect sign-in on live deployments
+    checkRedirectSignIn().then(({ profile, error }) => {
+      if (profile) {
+        setCurrentUser(profile);
+        setCachedUserProfile(profile);
+        showToast(`Signed in with Google as ${profile.name}!`, 'success');
+      } else if (error) {
+        setPendingAuthError(error);
+        setIsAuthModalOpen(true);
+        showToast(error.title, 'error');
+      }
+    });
+
     // 1. Subscribe to Firebase Auth
     const unsubAuth = subscribeToAuth((profile) => {
       if (profile) {
+        setCachedUserProfile(profile);
         setCurrentUser(profile);
       } else {
-        setCurrentUser((prev) => ({
-          ...prev,
-          isLoggedIn: false,
-        }));
+        setCurrentUser((prev) => {
+          const updated = { ...prev, isLoggedIn: false };
+          setCachedUserProfile(updated);
+          return updated;
+        });
       }
     });
 
@@ -263,10 +279,17 @@ export default function App() {
       {/* Auth / Profile Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
+        onClose={() => {
+          setIsAuthModalOpen(false);
+          setPendingAuthError(null);
+        }}
         currentUser={currentUser}
-        onUserChange={(updated) => setCurrentUser(updated)}
+        onUserChange={(updated) => {
+          setCachedUserProfile(updated);
+          setCurrentUser(updated);
+        }}
         onShowToast={showToast}
+        initialAuthError={pendingAuthError}
       />
 
       {/* Toast Notifications */}
