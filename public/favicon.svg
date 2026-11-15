@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">
+  <defs>
+    <linearGradient id="pxTealGrad" x1="6" y1="6" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#19B5A5" />
+      <stop offset="100%" stop-color="#0E8A7D" />
+    </linearGradient>
+    <linearGradient id="pxAccentGrad" x1="22" y1="8" x2="34" y2="24" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7667E8" />
+      <stop offset="100%" stop-color="#19B5A5" />
+    </linearGradient>
+  </defs>
+
+  <!-- Squircle Midnight Navy Backdrop -->
+  <rect width="40" height="40" rx="10" fill="#111C2E" />
+
+  <!-- Outer Circular Economy Orbit Arc -->
+  <path
+    d="M20 7.5C13.0964 7.5 7.5 13.0964 7.5 20C7.5 26.2584 12.1003 31.4437 18.1 32.3563"
+    stroke="url(#pxTealGrad)"
+    stroke-width="2.6"
+    stroke-linecap="round"
+  />
+  <path
+    d="M20 32.5C26.9036 32.5 32.5 26.9036 32.5 20C32.5 13.7416 27.8997 8.55628 21.9 7.6437"
+    stroke="url(#pxAccentGrad)"
+    stroke-width="2.6"
+    stroke-linecap="round"
+  />
+
+  <!-- Directional Cycle Chevrons -->
+  <path
+    d="M16.2 30.1L18.7 32.45L15.9 34.4"
+    stroke="#19B5A5"
+    stroke-width="2.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M23.8 9.9L21.3 7.55L24.1 5.6"
+    stroke="#7667E8"
+    stroke-width="2.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Geometric Earth-Leaf + PrithveX Core Emblem -->
+  <path
+    d="M14.5 25.5V14.5H20.2C23.1 14.5 25.2 16.35 25.2 19C25.2 21.65 23.1 23.5 20.2 23.5H17.3"
+    stroke="#FFFFFF"
+    stroke-width="2.6"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M19.8 18.9L25.5 25.5"
+    stroke="#19B5A5"
+    stroke-width="2.6"
+    stroke-linecap="round"
+  />
+
+  <!-- Intelligence Node Dot -->
+  <circle cx="28" cy="14" r="1.8" fill="#19B5A5" />
+</svg>

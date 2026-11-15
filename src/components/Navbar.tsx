@@ -9,6 +9,7 @@ import {
   MapPin
 } from 'lucide-react';
 import { UserProfile } from '../types';
+import { BrandLogo } from './BrandLogo';
 
 interface NavbarProps {
   currentTab: string;
@@ -93,16 +94,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Brand Zone */}
           <div 
             onClick={() => handleNavClick('home')}
-            className="flex items-center gap-2.5 cursor-pointer select-none group"
+            className="flex items-center cursor-pointer select-none group"
           >
-            <div className="w-8 h-8 rounded-lg bg-[#111C2E] text-white flex items-center justify-center font-black text-sm tracking-tight group-hover:bg-[#253247] transition-colors shadow-sm">
-              P
-            </div>
-            <div>
-              <span className="text-lg font-extrabold tracking-tight text-[#111C2E]">
-                Prithve<span className="text-[#19B5A5]">X</span>
-              </span>
-            </div>
+            <BrandLogo variant="light" size="md" />
           </div>
 
           {/* Nav Links Zone (Desktop) */}

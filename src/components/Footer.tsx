@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShieldCheck, Coins, Store, Compass, Sparkles } from 'lucide-react';
+import { BrandLogo } from './BrandLogo';
 
 interface FooterProps {
   onNavigate: (tab: string) => void;
@@ -12,14 +13,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-[#253247] text-xs">
           {/* Brand & Mandate */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-white text-[#111C2E] flex items-center justify-center font-black text-xs shadow-sm">
-                P
-              </div>
-              <span className="text-base font-extrabold tracking-tight text-white">
-                Prithve<span className="text-[#19B5A5]">X</span>
-              </span>
-            </div>
+            <BrandLogo variant="dark" size="md" />
             <p className="text-white font-bold text-xs">
               Better Waste Decisions. Sustainable Action.
             </p>
